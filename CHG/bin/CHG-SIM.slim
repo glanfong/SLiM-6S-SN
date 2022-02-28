@@ -1,0 +1,311 @@
+// --- FUNCTIONS ---
+
+// -- CLOCK --
+
+function (void) logReport(string file, float start, string outcome) {
+	
+	if (outcome == "LOSS") {
+		writeFile(file , sim_id + "\tLOSS\t" + NeChg + "\t" + s + "\t" + r + "\t" + mu + "\t" + L + "\t" + mut_pos + "\t" + chg_gen + "\t" + rise_gen + "\t" + sim.generation + "\t" + end_gen + "\t" + samp + "\t" + getMutFrequency(p1, m2) + "\t" + asString(clock(type="mono") - start + "\t" + Ne), append = T);
+	}
+	
+	if (outcome == "FIXED") {
+		writeFile(file , sim_id + "\tFIXED\t" + NeChg + "\t" + s + "\t" + r + "\t" + mu + "\t" + L + "\t" + mut_pos + "\t" + chg_gen + "\t" + rise_gen + "\t" + fix_gen + "\t" + end_gen + "\t" + samp + "\t1\t" + asString(clock(type="mono") - start + "\t" + Ne), append = T);
+	}
+	
+	if (outcome == "SEG") {
+		writeFile(file , sim_id + "\tSEG\t" + NeChg + "\t" + s + "\t" + r + "\t" + mu + "\t" + L + "\t" + mut_pos + "\t" + chg_gen + "\t" + rise_gen + "\tNF\t" + end_gen + "\t" + samp + "\t" + getMutFrequency(p1, m2) + "\t" + asString(clock(type="mono") - start + "\t" + Ne), append = T);
+	}
+}
+
+// -- SET CONSTANTS NOT CONFIGURED VIA COMMAND LINE --
+
+function (void) defineCfgParam(string$ name, lifs value) {
+	if (!exists(name))
+		defineConstant(name, value);
+}
+
+
+// ---- MUTATION FREQUENCY ----
+// - USE IF MULTIPLE POPULATIONS -
+
+function (lifso) getMutFrequency(lifso<Subpopulation> subPop, lifso<MutationType> mutType) {
+	counts = subPop.genomes.countOfMutationsOfType(mutType);
+	return (mean(counts > 0));
+}
+
+
+// ---- RESTART_RUN FUNCTION ----
+
+function (void) restart_run(void) {
+	
+	// ----- LOG REPORT -----
+	logReport(logFile, start_clock, "LOSS");
+	
+	// ----- INCREMENT FAIL COUNT BY 1 -----
+	defineGlobal("fail_count", fail_count+1);
+	
+	// ----- RESTART FROM CHECKPOINT -----
+	sim.readFromPopulationFile("checkpoint.txt");
+	cat("\n- RESTART - SAVE LOADED -\n");
+	
+	// ----- DRAW NEW RANDOM SEED -----
+	setSeed(rdunif(1, 0, asInteger(2^62)-1));
+	
+	// ----- HARD RESET ? -----	
+	
+	if (fail_count >= max_fail) {
+		cat("FAILS : " + fail_count + " > " + max_fail + "\n- HARD RESET -\n");
+		
+		// ----- DEMOGRAPHIC PARAMETERS -----
+		defineGlobal("Ne", rdunif(1, Ne_min, Ne_max) );
+		defineGlobal("NeChg", asInteger(Ne*asFloat(chg_r)) );
+		
+		// ----- TIME PARAMETERS -----
+		defineGlobal("chg_gen", 500);
+		defineGlobal("end_gen", rdunif(1, chg_gen, chg_gen + (4*NeChg) ) );
+		defineGlobal("rise_gen", rdunif(1, chg_gen, end_gen));
+		
+		cat("CHG GEN : " + chg_gen + "\n");
+		cat("RISE GEN : " + rise_gen + "\n");
+		cat("END GEN : " + end_gen + "\n");
+		
+		// ----- NEW S -----
+		defineGlobal("s", runif(1, (10/(2*Ne)), (500/(2*Ne)) ));
+		
+		cat("NEW S : " + s + "\n");
+		
+		// ----- RESET FAIL COUNT -----
+		defineGlobal("fail_count", 0);
+		
+		// ---- RESCHEDULE EVENTS ----
+		// S1 - DEMOGRAPHIC CHANGE | S2 -  MUTATION |
+		// S3 - CHECK FIXATION/LOSS | S4 - LIMIT
+		sim.rescheduleScriptBlock(s1, start = chg_gen-1, end = chg_gen-1);
+//		sim.rescheduleScriptBlock(s2, start = rise_gen, end = rise_gen);
+//		sim.rescheduleScriptBlock(s3, start = rise_gen, end = end_gen);
+		sim.rescheduleScriptBlock(s4, start = end_gen, end = end_gen);
+	
+	}
+
+}
+
+// -------------------------------------------------------
+
+// --- INITIALIZE ---
+
+initialize() {
+	
+	// ----- CONFIG PARAMETERS (DEFAULT) -----	
+	
+	defineCfgParam("sim_id", 974);
+	defineCfgParam("Ne_min", 500);
+	defineCfgParam("Ne_max", 1000);
+	defineCfgParam("r", 1e-8);
+	defineCfgParam("mu", 1e-6);
+	defineCfgParam("L", 49999);
+	defineCfgParam("samp", 50);
+	defineCfgParam("chg_r", 2);
+	
+	defineCfgParam("resultsFile", "./" + sim_id + "_parameters.txt");
+	defineCfgParam("logFile", "log.txt");
+	
+	// ----- DUMMY PARAMETERS (USE ONLY FOR TEST PURPOSES) ----
+	
+	defineCfgParam("fix_gen", 777);
+	defineCfgParam("mut_pos", 974);
+	
+	// ----- DEMOGRAPHIC PARAMETERS -----
+	
+	defineGlobal("Ne", rdunif(1, Ne_min, Ne_max) );
+	defineGlobal("NeChg", asInteger(Ne*asFloat(chg_r)) );
+	
+	// ----- TIME PARAMETERS -----
+	
+	defineGlobal("start_clock", clock(type="mono"));
+	
+	defineGlobal("chg_gen", 500);
+	defineGlobal("end_gen", rdunif(1, chg_gen, chg_gen + 200 ) );
+	defineGlobal("rise_gen", rdunif(1, chg_gen, end_gen));
+	
+	// ----- MUTATION PARAMETERS -----
+	
+	defineGlobal("s", runif(1, (10/(2*Ne)), (500/(2*Ne)) ));
+	
+	// ----- TREE-SEQUENCE RECORDING ----- 
+	
+	initializeTreeSeq();
+	
+	// ----- GENOMIC ELEMENTS ----- 
+	
+	initializeMutationRate(0);
+	initializeMutationType("m1", 0.5, "f", 0.0);
+	initializeMutationType("m2", 0.5, "f", s);
+	initializeGenomicElementType("g1", m1, 1.0);
+	initializeGenomicElement(g1, 0, L);
+	initializeRecombinationRate(r);
+	
+	
+	// ----- CHECKPOINT PARAMETERS -----	
+	
+	// ------ DEFINE MAX FAIL BASED ON TOLERANCE PARAMETER ------
+	defineGlobal("run_count", 1);
+	defineGlobal("fail_count", 0);
+	defineGlobal("tol", 0.1); //10% expect p(fixation) of ? -> REFERENCE ?
+	defineGlobal("max_fail", round(((2*Ne)/20)*tol));
+	
+	cat("MAX FAIL : " + max_fail + "\n");
+	
+	
+	// ----- FAIL SAFE -----
+	
+	if (samp > (NeChg)) {
+		cat("\nERROR - sample size > Ne*chg_r\nSIMULATION TERMINATED\n");
+		writeFile("./error_log.txt", "SIM : " + sim_id + "\nEXIT : samp > Ne*chg_r", append=T);
+		sim.simulationFinished();
+	}
+	
+	// ----- CAT SIM PARAMETERS ----
+	
+	cat("NE_min : " + Ne_min + "\n");
+	cat("NE_max : " + Ne_max + "\n");
+	cat("Ne : " + Ne + "\n");
+	cat("NeChg : " + NeChg + "\n");
+	cat("CHG GEN : " + chg_gen + "\n");
+	cat("RISE GEN : " + rise_gen + "\n");
+	cat("END GEN : " + end_gen + "\n");
+	cat("SEL. COEF. S : " + s + "\n");
+
+}
+
+// -------------------------------------------------------
+
+// --- ANCESTRAL POPULATION ---
+
+1 {
+	sim.addSubpop("p1", Ne);
+	
+	// ---- RESCHEDULE EVENTS ----
+	// S1 - DEMOGRAPHIC CHANGE | S2 -  MUTATION |
+	// S3 - CHECK FIXATION/LOSS | S4 - LIMIT
+	sim.rescheduleScriptBlock(s1, start = chg_gen-1, end = chg_gen-1);
+	//sim.rescheduleScriptBlock(s2, start = rise_gen, end = rise_gen);
+	//sim.rescheduleScriptBlock(s3, start = rise_gen, end = end_gen);
+	sim.rescheduleScriptBlock(s4, start = end_gen, end = end_gen);
+
+}
+
+// --- CHECKPOINT --- //
+
+2 late () {
+	cat("CHECKPOINT\n");
+	sim.outputFull("checkpoint.txt");
+}
+
+// --- DEMOGRAPHIC CHANGE ---
+
+s1 500 late() {
+	p1.setSubpopulationSize(NeChg);
+	
+	cat("NEW POPULATION SIZE : " + NeChg + "\n");
+}
+
+//// --- ADD MUTATION --
+//
+//s2 500 late() {
+//	target = sample(p1.genomes, 1);
+//	defineGlobal("mut_pos", rdunif(1, 0, L));
+//	target.addNewDrawnMutation(m2, mut_pos);
+//	
+//	cat("MUTATION POSITION : " + mut_pos + "\n");
+//}
+//
+//// --- CHECK MUTATION FIXATION ---
+//
+//s3 500:10000 late() {
+//	
+//	if (exists("fix_gen")) {}
+//	
+//	else {
+//		if (sim.countOfMutationsOfType(m2) == 0) {
+//			fixed = (sum(sim.substitutions.mutationType == m2) == 1);
+//			
+//			if (fixed) {
+//				defineConstant("fix_gen", sim.generation);
+//				cat("gen° " + sim.generation + " - MUTATION FIXED\n");
+//			}
+//			
+//			else {
+//				defineGlobal("loss_gen", sim.generation);
+//				cat("gen° " + sim.generation + " - MUTATION LOST\n");
+//				
+//				// ---- RESTART TO CHECKPOINT ----
+//				restart_run();
+//			}
+//		}
+//	}
+//}
+
+// --- SIMULATION HARD TIME LIMIT ---
+
+s4 10000 late() {
+	
+	defineGlobal("mutFreq", getMutFrequency(p1, m2));
+	
+	// ---- OUTPUT IF FIXED ----	
+	
+	if (exists("fix_gen")) {
+		
+		cat("- SUCCES - MUTATION FIXED -\n");
+		
+		// ----- WRITE TREE & PARAMETERS FILE -----	
+		sim.treeSeqOutput("./" + sim_id + ".trees");
+		logReport(resultsFile, start_clock, "FIXED");
+		
+		// ----- DELETE CHECKPOINT -----	
+		deleteFile("checkpoint.txt");
+		
+		// ----- END WORDS -----
+		sim.simulationFinished();
+		cat("SIM FINISHED WITH MUT FIXED");
+	
+	}
+	
+	
+	// ---- IF NOT FIXED ----	
+	
+	else {
+		
+		// ----- OUTPUT IF FREQ > 0.1 -----	
+		
+		if (mutFreq > 0.1) {
+			
+			cat("- SUCCES - MUTATION FREQ = " + mutFreq + "> 0.1 -\n");
+			
+			// ------ WRITE TREE & PARAMETERS FILE ------	
+			sim.treeSeqOutput("./" + sim_id + ".trees");
+			logReport(resultsFile, start_clock, "SEG");
+			
+			
+			// ------ DELETE CHECKPOINT ------	
+			deleteFile("checkpoint.txt");
+			
+			// ------ END WORDS ------
+			sim.simulationFinished();
+			cat("SIM FINISHED WITH MUT FREQ = " + getMutFrequency(p1, m2));
+		
+		
+		}
+		
+		// ----- IF FREQ < 0.1 -----		
+		
+		else {
+			
+			cat("gen° " + sim.generation + " - MUTATION LOST\n");
+			
+			// ---- RESTART TO CHECKPOINT ----
+			
+			restart_run();
+		
+		}
+	}
+}
