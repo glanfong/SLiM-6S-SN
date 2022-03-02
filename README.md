@@ -1,52 +1,144 @@
 # SLiM-6S-CHG - (BTL/CST/EXP)
 
-This repository contents are used to run the CHG (BTL/CST/EXP) simulations with the use of the SLiM simulator.
+This repository contains the scripts, files and folders used to run the **CHG (BTL/CST/EXP)** part of the 6S-simulations with the use of the SLiM simulator and the pyslim python module.
+The goal is to generate genomic data under 6 different demographic scenarios (6S) and this repository here focus on 3 of them. In the end, these simulations will be used to train a machine-learning tool to differenciate between the different scenarios.
 
 ## Simulations
 
-Three (3) different scenarii could be simulated with the contents of this repository.
-The folders are organized as follow :
+### General informations on simulations
 
-- *bin* folder : scripts used to run the simulations
-- *sim* folder : sub-folders named *CHG-YMMDD-XXXX*
-    - *CHG-YMMDD-XXXX* : metadata | *param* | *results*
-        - *param* : prior.txt
-        - *results* : simulations output
-        
-### *bin* folder - scripts
+Simulations are run using the evolutionary simulation framework SLiM (https://messerlab.org/slim/). We first run forward-time simulations with 'tree-sequence recording' focusing on the main event of interrest of our scenario (rise of a beneficial mutation, demographic event,...) *without burn-in*. As an output, an "*id.trees*" file (containing ancestry information about the population simulated) and a corresponding "*id_parameters.txt*" file (containing the corresponding parameters of the simulation) are created.
+
+We then go through a process of *recapitation* using pyslim (https://tskit.dev/pyslim/docs/latest/introduction.html) which, in short, takes the .trees file and uses coalescent simulation to provide a “prior history” for the initial generation of the simulation.
+Following that, we use msprime (https://tskit.dev/msprime/docs/stable/intro.html) to add neutral mutations to the tree sequence.
+
+This hybrid approach is a popular application of pyslim because coalescent algorithms, although more limited in the degree of biological realism they can attain, can be much faster than the forwards algorithms implemented in SLiM. Thus, by combining the main strenght of different approaches, we end up with a fast-generated, *quite biologically-accurate* tree file.
+
+For a more detailled look at how simulations actually run, please refer to the comments in the <ins>CHG-SIM.slim</ins> file.
+
+___
+
+### CHG scenarios 
+
+Here we apply this method to 3 different scenarios, grouped under the common general name CHG (Demographic CHanGe) : a scenario with a demographic BotTLeneck (BTL), a scenario with a population of ConSTant effective size (CST) and a scenario of demographic EXPansion (EXP).
+
+All of the CHG scenarios are run using the same *CHG-SIM.slim* core script. Thus, they share the same parameters and **it is of high importance to note that the *choice* of scenario is done *only* by tuning the value of <ins>chg_r</ins>.**
+
+Here's an overview of the parameters used for the CHG scenarios.
+
+#### <ins>Parameters in *prior.txt*</ins>
+
+First, the parameters that are set in the *prior.txt* file using the *prior_CHG.bash* helper script.
+
+| Parameter | Type | Description |
+| :---: | :---: | :---: |
+| Ne_min | int | Minimum number of individual in the ancestral population |
+| Ne_max | int | Maximum number of individual in the ancestral population |
+| r | float | Average recombination rate for the whole chromosome |
+| mu | float | Average mutation rate for the whole chromosome |
+| L | int | Length of the chromosome (bp) |
+| samp | int | Number of (diploid) individual sampled from the population |
+| chg_r | float | Strength of demographic event - ∈ R+ |
+| n_rep | int | Number of replicas run with this set of parameters |
+
+As said previously, the choice of scenario is made by setting the value of the chg_r parameter. **We can't stress enough how important it is to set the value of the chg_r parameter correctly as it will determine the simulated scenario.** 
+
+| Value | Scenario |
+| :---: | :---: |
+| < 1 | BTL |
+| = 1 | CST |
+| > 1 | EXP |
+
+#### <ins>Parameters used directly in *CHG-SIM.slim*</ins>
+
+Most of the user-defined parameters are set in the *prior.txt* file. However, a lot of parameters are handled directly within the *CHG-SIM.slim* script. For the most part, the users won't need to delve into this part but it is of high importance to make as clear as possible how each part of the simulations is done.
+
+#TO BE EDITED 
+
+| Parameter | Type | Description |
+| :---: | :---: | :---: |
+| Ne_min | int | Minimum number of individual in the ancestral population |
+| Ne_max | int | Maximum number of individual in the ancestral population |
+| r | float | Average recombination rate for the whole chromosome |
+| mu | float | Average mutation rate for the whole chromosome |
+| L | int | Length of the chromosome (bp) |
+| samp | int | Number of (diploid) individual sampled from the population |
+| chg_r | float | Strength of demographic event - ∈ R+ |
+| n_rep | int | Number of replicas run with this set of parameters |
+
+
+___
+
+### Scenario CST - Constant Ne
+
+In this scenario, we simulate a single population of constant effective size (Ne) over time.
+Nothing especially noteworthy here. A single beneficial mutation appears at a random generation on one of the two chromosomes of a random diploid individual of the population.
+
+The actual part of the simulation when selection happens on the beneficial mutation is simulated forward in time in SLiM. The .trees files are recapitated and neutral mutation are added afterward.
+
+### Scenario BTL - Bottleneck
+
+In this scenario, we simulate a single population which goes through a demographic bottleneck. It's effective size went from Na to Nb (Nb < Na) after the demographic event.
+
+It should be noted that a lot of things can be tweaked here. The generation at which the demographic change occurs, the generation at which the mutation appears, but also the strength of the demographic change as well as the ending generation (the generation at which 
+
+Nothing especially noteworthy here. A single beneficial mutation appears at a random generation on one of the two chromosomes of a random diploid individual of the population.
+
+The actual part of the simulation when selection happens on the beneficial mutation is simulated forward in time in SLiM. The .trees files are recapitated and neutral mutation are added afterward.
+
+___
+
+The contents of this repository are organized as follow :
+
+```
+SLiM-6S-CHG 
+│
+└─ bin 
+│   └─ (see 'bin folder - contents' section for details)
+└─ sim
+    └─  CHG-YMMDD-XXXX
+    │       ├── param
+    │       │   └── prior.txt
+    │       ├── results
+    │       │    └── id.ms
+    │       │    ├── id_parameters.txt
+    │       │    ├── id_positions.txt
+    │       │    ├── id_recap_mut_trees.trees
+    │       │    ├── id_recap.trees
+    │       │    ├── id_sumStats.txt
+    │       │    ├── id.trees
+    │       │    ├── (...)
+    │       │    ├── log.txt
+    │       │    └── summary.txt
+    │       └── metadata
+    └─ tuto
+```
+___
+
+### *bin* folder - contents
 
 The *bin* folder contains the scripts used to run the simulations.
 Here's a quick overview of each file :
 
-- CHG-SIM.slim : it is the core script. It contains the SLiM code used to run the "forward part" of the simulations.
-- dir_creat_CHG.bash : helper script used to create the sub-folders used for each "batch" of simulations.
-- metadata_update.bash : helper script used to update the *metadata* file once the parameters are set in the *prior.txt* file.
-- msmscalc_onePop.py : analysis script used to compute diversity indexes.
-- prior_CHG.bash : helper script used to easily set the parameters used for the simulations.
-- run_CHG.bash : helper script used to run the pipeline.
-- sim2box.bash : helper script used to run *sim2box_single_YOLOv5.py* script.
-- sim2box_single_YOLOv5.py : script used to create .png files containing diversity indexes.
-- SLiM_CHG.bash : helper script used to run *CHG-SIM.slim* script using the correct parameters.
-- stats_calc_CHG.bash : helper script used to run *trees2ms_CHG.py* and *msmscalc_onePop.py* scripts.
-- tajD_check.r : temporary file - contains code extracts used to check tajD value of simulations with R.
-- trees2ms_CHG.py : processing script used to recapitate (see pyslim - recapitation), add mutations and create a .ms file from the .trees files outputed by the SLiM simulations.
-- treesTajimas_D.py : temporary file - script used to quickly compute TajD for all simulations.
-- tskitTajD.bash : helper script used to run *treesTajimas_D.py* for all simulations within the *summary.txt* file.
+| File | Script Type | Description |
+| :---: | :---: | :---: |
+| CHG-SIM.slim | Core | Contains the SLiM code used to run the "forward part" of the simulations |
+| dir_creat_CHG.bash | Helper | Create the sub-folders used for each "batch" of simulations |
+| metadata_update.bash | Helper | Update the *metadata* file once the parameters are set in the *prior.txt* file |
+| msmscalc_onePop.py | Analysis | Compute diversity indexes* |
+| prior_CHG.bash | Helper | Easily set the parameters used for the simulations in the *prior.txt* file |
+| run_CHG.bash | Helper | Run the whole pipeline |
+| sim2box.bash | Helper | Run *sim2box_single_YOLOv5.py* script |
+| sim2box_single_YOLOv5.py | Analysis | Create .png files from diversity indexes |
+| SLiM_CHG.bash | Helper | Run *CHG-SIM.slim* script using the parameters set in the *prior.txt* file |
+| stats_calc_CHG.bash | Helper | Run *trees2ms_CHG.py* and *msmscalc_onePop.py* scripts |
+| tajD_check.r | Analysis | Temporary file. Contains code extracts used to check the value of Tajima's D of the simulations with R |
+| trees2ms_CHG.py | Core | Recapitate, add neutral mutations and create .ms files from the .trees files outputed by *CHG-SIM.slim* |
+| treesTajimas_D.py | Analysis | Temporary file. Used to quickly compute TajD for all simulations from the *summary.txt* file |
+| tskitTajD.bash | Helper | Run *treesTajimas_D.py* |
+| --- | --- | --- |
 
-
-- Note -
-Computed diversity indewes are : mean π, π standard deviation, mean Watterson's θ, mean Tajima's D, mean Achaz's Y, Pearson correlation coefficient between genomoc position and π, and p-value of this correlation).
-
-First and foremost, data need to be simulated beforehand to create a big enough dataset in order to train neural networks on different scenarii.
-
-The *simulations* folder contains subfolders each dedicated to the run of different scenarii.
-Each subfolder contains the code needed to run simulations for the corresponding scenario.
-
-- *msmscalc_onePop.py* is used to compute genetic statistics (from the ms files) on a sliding window along chromosomes
-- *multiple_tree2ms.py* is used to convert .trees files (generated by SLiM) to ms format
-- *rand_s_ref_simu.py* is used to sublaunch *reference_simulations.slim* on python to handle the .trees files directly on the fly (recapitation + adding neutral mutations)
-- *reference_simulations.slim* is the core file ; it contains the SLiM code used to run the "forward part" of the simulations
-- *simulation_sweep.bash* could be seen as both the "main" file and a "parameters" file ; it's the file to run in order to initiate the pipeline
+* computed diversity indexes are : mean π, π standard deviation, mean Watterson's θ, mean Tajima's D, mean Achaz's Y, Pearson correlation coefficient between genomoc position and π, and p-value of this correlation).
 
 ___
 
@@ -64,23 +156,35 @@ ___
 For now, the pipeline should output the results as below (considering that *simulation_swep.bash* was executed on March 17th 2021, from the **scripts** folder) :
 
 ```
-project 
+SLiM-6S-CHG 
 │
-└───scripts
-│   │   msmscalc_onePop.py
-│   │   multiple_tree2ms.py
-│   │   rand_s_ref_simu.py
-│   │   reference_simulations.slim
-│   │   simulation_sweep.bash
+└─ bin
+│   ├── CHG-SIM.slim
+│   ├── dir_creat_CHG.bash
+│   ├── metadata_update.bash
+│   ├── msmscalc_onePop.py
+│   ├── prior_CHG.bash
+│   ├── run_CHG.bash
+│   ├── sim2box.bash
+│   ├── sim2box_single_YOLOv5.py
+│   ├── SLiM_CHG.bash
+│   ├── stats_calc_CHG.bash
+│   ├── tajD_check.r
+│   ├── trees2ms_CHG.py
+│   ├── treesTajimas_D.py
+│   └── tskitTajD.bash
 │   
-└───simu_17_Mar_2021
-    │   clock.txt
-    │   ms_sweep_SLiM_Ne3000_s0.06512_r1e-08_mu1e-07_L49999_positions.txt
-    │   ms_sweep_SLiM_Ne3000_s0.06512_r1e-08_mu1e-07_L49999_sumStats.txt
-    │   ms_sweep_SLiM_Ne3000_s0.06512_r1e-08_mu1e-07_L49999.trees.txt
-    │   (...)
-    │   summary_sweep_data.txt
-    │   sweep_data_Ne3000_s0.06512_r1e-08_mu1e-07_L49999.txt
-    │   sweep_SLiM_Ne3000_s0.06512_r1e-08_mu1e-07_L49999.trees
-    │   (...)
+└─ sim
+    └─  CHG-YMMDD-XXXX
+    │       ├── id.ms
+    │       ├── id_parameters.txt
+    │       ├── id_positions.txt
+    │       ├── id_recap_mut_trees.trees
+    │       ├── id_recap.trees
+    │       ├── id_sumStats.txt
+    │       ├── id.trees
+    │       ├── (...)
+    │       ├── log.txt
+    │       └── summary.txt
+    └─ tuto
 ```
