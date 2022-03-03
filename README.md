@@ -22,7 +22,26 @@ ___
 
 Here we apply this method to 3 different scenarios, grouped under the common general name CHG (Demographic CHanGe) : a scenario with a demographic BotTLeneck (BTL), a scenario with a population of ConSTant effective size (CST) and a scenario of demographic EXPansion (EXP).
 
-All of the CHG scenarios are run using the same *CHG-SIM.slim* core script. Thus, they share the same parameters and **it is of high importance to note that the *choice* of scenario is done *only* by tuning the value of <ins>chg_r</ins>.**
+All of the CHG scenarios are run using the same *CHG-SIM.slim* core script. Thus, they share the same parameters and **it is of high importance to note that the *choice* of scenario is done *only* by tuning the value of <ins>chg_r</ins>**. Please, refer to the detailled overview of the parameters used in the next part of the README.
+
+#### <ins>Scenario CST - Constant Ne - chg_r = 1</ins>
+
+In this scenario, we simulate a single population of constant effective size (Ne) over time.
+Nothing especially noteworthy here. A single beneficial mutation appears at a random generation on one of the two chromosomes of a random diploid individual of the population.
+
+The actual part of the simulation when selection happens on the beneficial mutation is simulated forward in time in SLiM. The .trees files are recapitated and neutral mutations are added afterward.
+
+#### <ins>Scenario BTL & EXP - Bottleneck & Expansion - chg_r < 1 & chg_r > 1</ins>
+
+In these 2 scenarios, we simulate a single population which goes through a demographic event. It's effective size went from Na to Nb (Nb < Na for BTL, Nb > Na for EXP) after the demographic event.
+
+It should be noted that a lot of things can be tweaked here. The generation at which the demographic change occurs, the generation at which the mutation appears, but also the strength of the demographic change as well as the ending generation.
+
+Once again, the actual part of the simulation when the demographic change as well as when selection happens on the beneficial mutation is simulated forward in time in SLiM. The .trees files are recapitated and neutral mutation are added afterward.
+
+___
+
+### Parameters
 
 Here's an overview of the parameters used for the CHG scenarios.
 
@@ -49,44 +68,41 @@ As said previously, the choice of scenario is made by setting the value of the c
 | = 1 | CST |
 | > 1 | EXP |
 
-#### <ins>Parameters used directly in *CHG-SIM.slim*</ins>
+#### <ins>Parameters used directly within *CHG-SIM.slim*</ins>
 
 Most of the user-defined parameters are set in the *prior.txt* file. However, a lot of parameters are handled directly within the *CHG-SIM.slim* script. For the most part, the users won't need to delve into this part but it is of high importance to make as clear as possible how each part of the simulations is done.
 
-#TO BE EDITED 
-
-| Parameter | Type | Description |
-| :---: | :---: | :---: |
-| Ne_min | int | Minimum number of individual in the ancestral population |
-| Ne_max | int | Maximum number of individual in the ancestral population |
-| r | float | Average recombination rate for the whole chromosome |
-| mu | float | Average mutation rate for the whole chromosome |
-| L | int | Length of the chromosome (bp) |
-| samp | int | Number of (diploid) individual sampled from the population |
-| chg_r | float | Strength of demographic event - ∈ R+ |
-| n_rep | int | Number of replicas run with this set of parameters |
-
-
-___
-
-### Scenario CST - Constant Ne
-
-In this scenario, we simulate a single population of constant effective size (Ne) over time.
-Nothing especially noteworthy here. A single beneficial mutation appears at a random generation on one of the two chromosomes of a random diploid individual of the population.
-
-The actual part of the simulation when selection happens on the beneficial mutation is simulated forward in time in SLiM. The .trees files are recapitated and neutral mutation are added afterward.
-
-### Scenario BTL - Bottleneck
-
-In this scenario, we simulate a single population which goes through a demographic bottleneck. It's effective size went from Na to Nb (Nb < Na) after the demographic event.
-
-It should be noted that a lot of things can be tweaked here. The generation at which the demographic change occurs, the generation at which the mutation appears, but also the strength of the demographic change as well as the ending generation (the generation at which 
-
-Nothing especially noteworthy here. A single beneficial mutation appears at a random generation on one of the two chromosomes of a random diploid individual of the population.
-
-The actual part of the simulation when selection happens on the beneficial mutation is simulated forward in time in SLiM. The .trees files are recapitated and neutral mutation are added afterward.
+| Parameter | Scope | Type | Description |
+| :---: | :---: | :---: | :---: |
+| sim_id | Config | int | Identifier of the simulation - use an integer for later uses |
+| Ne_min | Config | int | Minimum number of individual in the ancestral population |
+| Ne_max | Config | int | Maximum number of individual in the ancestral population |
+| r | Config | float | Average recombination rate for the whole chromosome |
+| mu | Config | float | Average mutation rate for the whole chromosome |
+| L | Config | int | Length of the chromosome (bp) |
+| samp | Config | int | Number of (diploid) individual sampled from the population |
+| chg_r | Config | float | Strength of demographic event - ∈ R+ |
+| Ne | Demographic | int | Actual number of individual in the ancestral population |
+| NeChg | Demographic | int | Number of individual in the population after the demographic event |
+| fix_gen | Time | int | Generation of fixation of the mutation |
+| chg_gen | Time | int | Generation of occurence of the demographic change |
+| end_gen | Time | int | Ending generation of the simulation |
+| rise_gen | Time | int | Generation of occurence of the beneficial mutation |
+| s | Genetic | float | Selection coefficient - see SLiM manual for more details |
+| mut_pos | Genetic | int | Position of the mutation along the chromosome |
+| run_count | Conditional Sim | int | Number of run done using the current random parameters |
+| fail_count | Conditional Sim | int | Number of failed run done using the current random paramters |
+| tol | Conditional Sim | float | Tolerance parameter - find reference ??? |
+| max_fail | Conditional Sim | int | Max number of failed runs before changing random parameters |
+| :---: | :---: | :---: | :---: |
+| :---: | :---: | :---: | :---: |
+| :---: | :---: | :---: | :---: |
+| :---: | :---: | :---: | :---: |
+| :---: | :---: | :---: | :---: |
 
 ___
+
+## Folders organization
 
 The contents of this repository are organized as follow :
 
@@ -125,7 +141,7 @@ Here's a quick overview of each file :
 | CHG-SIM.slim | Core | Contains the SLiM code used to run the "forward part" of the simulations |
 | dir_creat_CHG.bash | Helper | Create the sub-folders used for each "batch" of simulations |
 | metadata_update.bash | Helper | Update the *metadata* file once the parameters are set in the *prior.txt* file |
-| msmscalc_onePop.py | Analysis | Compute diversity indexes* |
+| msmscalc_onePop.py | Analysis | Compute diversity indexes* (see Note below) |
 | prior_CHG.bash | Helper | Easily set the parameters used for the simulations in the *prior.txt* file |
 | run_CHG.bash | Helper | Run the whole pipeline |
 | sim2box.bash | Helper | Run *sim2box_single_YOLOv5.py* script |
@@ -138,22 +154,32 @@ Here's a quick overview of each file :
 | tskitTajD.bash | Helper | Run *treesTajimas_D.py* |
 | --- | --- | --- |
 
-* computed diversity indexes are : mean π, π standard deviation, mean Watterson's θ, mean Tajima's D, mean Achaz's Y, Pearson correlation coefficient between genomoc position and π, and p-value of this correlation).
+<ins>Note</ins> : computed diversity indexes are : mean π, π standard deviation, mean Watterson's θ, mean Tajima's D, mean Achaz's Y, Pearson correlation coefficient between genomoc position and π, and p-value of this correlation).
 
 ___
 
-## How to set parameters
+## Using 6S-CHG
 
-For now, setting parameters is done by editing :
+A few easy steps are requiered in order to use this pipeline. They're all detailed in the "tuto" file of this repository but we find it important to give at least some pointers and informations in here too.
+    
+### Setup folders and parameters
 
-- *simulation_sweep.bash* (line 10) : python ${projectPath}/rand_s_ref_simu.py Ne=3000 nb_rep=5 r=1e-8 mu=1e-7 L=49999 path=${projectPath}
-- *simulation_sweep.bash* (line 34) : python ${projectPath}/msmscalc_onePop.py ${file} 40 1 50000 0.1 0.1 #40 haploids, 1 pop, L=50000, window_size=0.1.L, step=0.1.L
+Start by cloning this repository (command line : *git clone https://github.com/glanfong/SLiM-6S-CHG*). Go to SLiM-6S-CHG/CHG/bin folder and run the dir_crea_CHG.bash script. This will create a new folder named CHG-YMMDD-XXXX, where YMMDD are the current date (Y = 1, 2 or 3, MM = month, DD = day) with, inside, a **metadata** file (important note : packages version are 'hardcoded' and should be edited 'by hand') and 2 folders : **param** and **results**.
+The param folder is used to store the prior.txt file, which we will create in a few moments. The results folder will contains all the results of our simulations.
+    
+Go to the **param** folder and run the command : bash ../../../bin/prior_CHG.bash Ne_max Ne_min r mu L samp chg_r rep
+This will create a *prior.txt* file containing the specified parameters. Note that you can re-run the command multiple times in order to add new parameters to your parameter file. Once you are done, please remember to run : bash ../../../bin/metadata_update.bash to update the *metadata* file with your parameters.
+    
+### Running the simulations
+
+Once you've setup your parameters, just go to the **results** folder and run bash ../../../bin/run_CHG.bash
+Simulations should start and some basic information about them will be displayed on your console. Once the simulations are finished and depending on how you *run_CHG.bash* has been tweaked, you should have an output close to the one displayed on the next section.
 
 ___
 
 ## Pipeline output
 
-For now, the pipeline should output the results as below (considering that *simulation_swep.bash* was executed on March 17th 2021, from the **scripts** folder) :
+For now (03-03-2022), once you've run the pipeline, your folders should looks something like the results below :
 
 ```
 SLiM-6S-CHG 
