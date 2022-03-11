@@ -1,0 +1,2 @@
+pi_avg_bin0	thetaW_avg_bin0	pi_std_bin0	tajD_bin0	achazY_bin0	pearson_r_bin0	pearson_pval_bin0
+0.00227	0.00185	0.00033	0.86022	-0.02217	0.08884	0.07856
