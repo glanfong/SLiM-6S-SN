@@ -1,1 +1,0 @@
-sim_id	outcome	Ne	s	r	mu	L	mut_pos	chg_gen	rise_gen	loss_gen	end_gen	samp	mut_freq	time(s)	Ne_init
