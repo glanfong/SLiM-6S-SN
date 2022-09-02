@@ -30,7 +30,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/glanfong/repo_name">
+  <a href="https://github.com/glanfong/SLiM-6S-SN">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
@@ -39,14 +39,14 @@
   <p align="center">
     This repository contains the scripts, files and folders used to run both the CHG (BTL/CST/EXP) and MGD (MGB/MIG/MGX parts of the 6S-SN-simulations with the use of the SLiM simulator and the pyslim python module. The goal is to generate genomic data under 6 different demographic scenarios (6S) with either a selective sweep occuring or not (SN). These simulations will later be used to train a CNN to differenciate between the different scenarios and to detect the selective sweeps.
     <br />
-    <a href="https://github.com/glanfong/repo_name"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/glanfong/SLiM-6S-SN"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/glanfong/repo_name">View Demo</a>
+    <a href="https://github.com/glanfong/SLiM-6S-SN">View Demo</a>
     ·
-    <a href="https://github.com/glanfong/repo_name/issues">Report Bug</a>
+    <a href="https://github.com/glanfong/SLiM-6S-SN/issues">Report Bug</a>
     ·
-    <a href="https://github.com/glanfong/repo_name/issues">Request Feature</a>
+    <a href="https://github.com/glanfong/SLiM-6S-SN/issues">Request Feature</a>
   </p>
 </div>
 
@@ -102,17 +102,6 @@ For a more detailled look at how simulations internally run, please refer to the
 
 
 
-### Built With
-
-* [![SLiM][SLiM-shield]][SLiM-url]
-* [![python][python3.9-shield]][python3.9-url]
-* [![tskit][tskit-shield]][tskit-url] [![pyslim][pyslim-shield]][pyslim-url] [![msprime][msprime-shield]][msprime-url]
-
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
 <!-- GETTING STARTED -->
 ## Getting Started
 
@@ -121,20 +110,21 @@ To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-In order to get this repository scripts to work, you'll need a couple of tools and packagesinstalled to your computer first.
+In order to get this repository scripts to work, you'll need a couple of tools and packages installed to your computer first.
 
-1. [SLiM 3.7](http://messerlab.org/slim/) - Please refer to SLiM manual for detailled documentation and instruction on how to install it. The manual and other SLiM resources can be found at http://messerlab.org/slim/.
+* [![SLiM][SLiM-shield]][SLiM-url]- Please refer to SLiM manual for detailled documentation and instruction on how to install it. The manual and other SLiM resources can be found at http://messerlab.org/slim/.
 
-2. [Python 3.9](https://www.python.org/downloads/release/python-390/) - You could always just try :
+* [![python][python3.9-shield]][python3.9-url]- You could either go to the Python website, or maybe just try :
   ```sh
-  apt install python3.9
+  apt-get install python3.9
   ```
 
-3. [tskit (+ pyslim and msprime)](https://tskit.dev/software/) - Please refer to the tskit website for detailled documentation and instruction on how to install theses packages.
+* [![tskit][tskit-shield]][tskit-url] [![pyslim][pyslim-shield]][pyslim-url] [![msprime][msprime-shield]][msprime-url]- Please refer to the tskit website for detailled documentation and instruction on how to install theses packages.
+
 
 ### Installation
 
-1. Make sure you've installed all the prerequisites.
+1. Make sure you've correctly installed all the prerequisites.
 
 2. Clone the repo
    ```sh
@@ -172,7 +162,7 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 - [ ] Feature 3
     - [ ] Nested Feature
 
-See the [open issues](https://github.com/glanfong/repo_name/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/glanfong/SLiM-6S-SN/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -208,9 +198,9 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - lanfong.guillaume@gmail.com@lanfong.guillaume@gmail.com_client.com
+Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - lanfong.guillaume@gmail.com@lanfong.
 
-Project Link: [https://github.com/glanfong/repo_name](https://github.com/glanfong/repo_name)
+Project Link: [https://github.com/glanfong/SLiM-6S-SN](https://github.com/glanfong/SLiM-6S-SN)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -251,16 +241,16 @@ The actual part of the simulation when the demographic change occurs can be simu
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/glanfong/repo_name.svg?style=for-the-badge
-[contributors-url]: https://github.com/glanfong/repo_name/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/glanfong/repo_name.svg?style=for-the-badge
-[forks-url]: https://github.com/glanfong/repo_name/network/members
-[stars-shield]: https://img.shields.io/github/stars/glanfong/repo_name.svg?style=for-the-badge
-[stars-url]: https://github.com/glanfong/repo_name/stargazers
-[issues-shield]: https://img.shields.io/github/issues/glanfong/repo_name.svg?style=for-the-badge
-[issues-url]: https://github.com/glanfong/repo_name/issues
-[license-shield]: https://img.shields.io/github/license/glanfong/repo_name.svg?style=for-the-badge
-[license-url]: https://github.com/glanfong/repo_name/blob/master/LICENSE.txt
+[contributors-shield]: https://img.shields.io/github/contributors/glanfong/SLiM-6S-SN.svg?style=for-the-badge
+[contributors-url]: https://github.com/glanfong/SLiM-6S-SN/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/glanfong/SLiM-6S-SN.svg?style=for-the-badge
+[forks-url]: https://github.com/glanfong/SLiM-6S-SN/network/members
+[stars-shield]: https://img.shields.io/github/stars/glanfong/SLiM-6S-SN.svg?style=for-the-badge
+[stars-url]: https://github.com/glanfong/SLiM-6S-SN/stargazers
+[issues-shield]: https://img.shields.io/github/issues/glanfong/SLiM-6S-SN.svg?style=for-the-badge
+[issues-url]: https://github.com/glanfong/SLiM-6S-SN/issues
+[license-shield]: https://img.shields.io/github/license/glanfong/SLiM-6S-SN.svg?style=for-the-badge
+[license-url]: https://github.com/glanfong/SLiM-6S-SN/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/linkedin_username
 [product-screenshot]: images/screenshot.png
