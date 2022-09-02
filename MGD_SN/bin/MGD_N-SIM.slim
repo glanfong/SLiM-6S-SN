@@ -1,0 +1,190 @@
+// -- SET CONSTANTS NOT CONFIGURED VIA COMMAND LINE --
+
+function (void) defineCfgParam(string$ name, lifs value) {
+	if (!exists(name))
+		defineConstant(name, value);
+}
+
+// -- CLOCK --
+
+function (void) logReport(string file, float start, string outcome) {
+	
+	mutFreq = "-";
+	mut_pos = "-";
+	fix_gen = "-";
+	seed = getSeed();
+	
+	if (outcome == "LOWF") {
+		if (debug) {
+			writeFile(debugFile, "-------------- LOWF --------------", append = T);
+		}
+		
+		writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tloss_gen\tend_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen", append = T);
+		
+		writeFile(file , sim_id + "\tLOWF\t" + NeA + "\t" + NeB + "\t" + s + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + mut_pos + "\t" + rise_gen + "\t" + loss_gen + "\t" + end_gen + "\t" + samp + "\t" + mutFreq + "\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen, append = T);
+	}
+	
+	if (outcome == "LOSS") {
+		if (debug) {
+			writeFile(debugFile, "-------------- LOSS --------------", append = T);
+		}
+		
+		writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tloss_gen\tend_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen", append = T);
+		
+		writeFile(file , sim_id + "\tLOSS\t" + NeA + "\t" + NeB + "\t" + s + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + mut_pos + "\t" + rise_gen + "\t" + loss_gen + "\t" + end_gen + "\t" + samp + "\t" + mutFreq + "\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen, append = T);
+	}
+	
+	if (outcome == "FIXED") {
+		if (debug) {
+			writeFile(debugFile, "-------------- FIXED --------------", append = T);
+		}
+		
+		writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tfix_gen\tend_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen", append = T);
+		
+		writeFile(file , sim_id + "\tFIXED\t" + NeA + "\t" + NeB + "\t" + s + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + mut_pos + "\t" +  rise_gen + "\t" + fix_gen + "\t" + end_gen + "\t" + samp + "\t1\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen, append = T);
+	}
+	
+	if (outcome == "SEG") {
+		if (debug) {
+			writeFile(debugFile, "-------------- SEG --------------", append = T);
+		}
+		
+		writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tfix_gen\tend_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen", append = T);
+		
+		writeFile(file , sim_id + "\tSEG\t" + NeA + "\t" + NeB + "\t" + s + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + mut_pos + "\t" + rise_gen + "\tNF\t" + end_gen + "\t" + samp + "\t" + mutFreq + "\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen, append = T);
+	}
+	
+	if (outcome == "NO_MUT") {
+		if (debug) {
+			writeFile(debugFile, "-------------- NO_MUT --------------", append = T);
+		}
+		
+		writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tfix_gen\tend_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen", append = T);
+		
+		writeFile(file , sim_id + "\tNO_MUT\t" + NeA + "\t" + NeB + "\t" + s + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + mut_pos + "\t" +  rise_gen + "\t" + fix_gen + "\t" + end_gen + "\t" + samp + "\t-\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen, append = T);
+	}
+}
+// -------------------------------------------------------
+
+// --- INITIALIZE ---
+
+initialize() {
+	
+	// ----- CONFIG PARAMETERS (DEFAULT - USE ONLY FOR TEST PURPOSES) -----	
+	
+	defineCfgParam("sim_id", 974);
+	defineCfgParam("Ne", 500);
+	defineCfgParam("r", 1e-8);
+	defineCfgParam("mu", 1e-7);
+	defineCfgParam("L", 49999);
+	defineCfgParam("samp", 20);
+	defineCfgParam("chg_r", 10);
+	
+	defineCfgParam("NeA", asInteger(round(asFloat(Ne*chg_r))));
+	defineCfgParam("NeB", Ne);
+	
+	defineCfgParam("m", 1/(10*NeA));
+	
+	
+	defineCfgParam("resultsFile", "./" + sim_id + "_neutral_parameters.txt");
+	defineCfgParam("logFile", "log.txt");
+	defineCfgParam("debugFile", "debug.txt");
+	defineCfgParam("initSeed", getSeed());
+	
+	defineCfgParam("debug", F);
+	
+	// ----- PREVENT STUCK PARAMETERS - HARD LIMIT TO SLIM KILL ----
+	
+	defineCfgParam("runLimit", 500); // Number of runs before killing this SLiM instance
+	defineGlobal("runCount", 1); // Count number of runs
+	
+	
+	// ----- DUMMY PARAMETERS (USE ONLY FOR TEST PURPOSES) ----
+	
+	//defineCfgParam("fix_gen", 777);
+	
+	// ----- TIME PARAMETERS -----
+	
+	defineGlobal("start_clock", clock(type="mono"));
+	//	
+	//	defineGlobal("split_gen", 5000);
+	//	defineGlobal("end_gen", 500);
+	//	defineGlobal("rise_gen", 5);
+	
+//	defineCfgParam("split_gen", rdunif(1, asInteger(round(0.1*Ne)), 10*Ne));
+//	defineCfgParam("end_gen", rdunif(1, 5, asInteger(round(0.2*split_gen))));
+	defineCfgParam("rise_gen", 4);
+	
+	// ----- MUTATION PARAMETERS -----
+	
+	defineCfgParam("s", runif(1, (10/(2*Ne)), (500/(2*Ne)) )); // papier de Linch ? En dessous de 0.05 Ne ~ Neutre => Avec ces valeurs, garanti quasi un sweep
+	
+	// ----- TREE-SEQUENCE RECORDING ----- 
+	
+	initializeTreeSeq();
+	
+	// ----- GENOMIC ELEMENTS ----- 
+	
+	initializeMutationRate(0);
+	initializeMutationType("m1", 0.5, "f", 0.0);
+	initializeMutationType("m2", 0.5, "f", s);
+	initializeGenomicElementType("g1", m1, 1.0);
+	initializeGenomicElement(g1, 0, L);
+	initializeRecombinationRate(r);
+	
+	// ----- FAIL SAFE -----
+	
+	if (samp > (NeA)) {
+		cat("\nERROR - sample size > NeA\nSIMULATION TERMINATED\n");
+		writeFile("./error_log.txt", "SIM : " + sim_id + "\nEXIT : samp > NeA", append=T);
+		sim.simulationFinished();
+	}
+	
+	while (rise_gen+1 >= end_gen) {
+		defineCfgParam("rise_gen", rdunif(1, 2, end_gen));
+	}
+	
+	// ----- CAT SIM PARAMETERS ----
+	
+	cat("NeA : " + NeA + "\n");
+	cat("NeB : " + NeB + "\n");
+	cat("Ne : " + Ne + "\n");
+	cat("RISE GEN : " + rise_gen + "\n");
+	cat("END GEN : " + end_gen + "\n");
+	cat("SEL. COEF. S : " + s + "\n");
+
+}
+
+// -------------------------------------------------------
+
+// --- ADDING POPULATIONS ---
+
+
+1 {
+	sim.addSubpop("p1", NeA);
+	sim.addSubpop("p2", NeB);
+	p1.setMigrationRates(p2, m);
+	
+	// ---- RESCHEDULE EVENTS ----
+	// S1 -  MUTATION |
+	// S2 - CHECK FIXATION/LOSS | S3 - LIMIT
+
+	sim.rescheduleScriptBlock(s3, start = end_gen, end = end_gen);
+
+}
+
+// --- SIMULATION HARD TIME LIMIT ---
+
+s3 200000 late() {
+	
+	// ----- WRITE TREE & PARAMETERS FILE -----	
+	sim.treeSeqOutput("./" + sim_id + "_neutral.trees");
+	logReport(resultsFile, start_clock, "NO_MUT");
+	
+	// ----- DELETE CHECKPOINT -----	
+	deleteFile("checkpoint.txt");
+	
+	// ----- END WORDS -----
+	sim.simulationFinished();
+	cat("SIM FINISHED WITH NO MUT");
+}

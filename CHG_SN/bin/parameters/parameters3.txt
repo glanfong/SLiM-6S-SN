@@ -1,0 +1,3 @@
+# Lines starting with # will be ignored
+#NeMin	NeMax	r	mu	L	samp	chg_r	n_rep
+100	1000	1e-6	1e-6	100000	20	1	15

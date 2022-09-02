@@ -1,0 +1,45 @@
+id	CHG-10831-
+author	GLF
+creation_date	2022-08-31
+
+# Packages #
+packages	version
+SLiM		v3.7.1
+pyslim		v0.700
+tskit		v0.4.1
+msprime		v1.1.1
+python		v3.9.9
+
+# Scripts #
+CHG_N-SIM.slim
+CHG-SIM.slim
+dir_creat_CHG.bash
+jobs_CHG.bash
+launch_run.bash
+metadata_prior_update.bash
+msmscalc_onePop.py
+parameters
+prior_creat_CHG.bash
+recap_CHG.bash
+run_CHG.bash
+sim2box.bash
+sim2box_single_YOLOv5.py
+SLiM_CHG.bash
+SLiM_CHG_N.bash
+slurm-25638821.out
+slurm-25638822.out
+slurm-25638823.out
+stats_calc_CHG.bash
+summary.txt
+tajD_check.r
+trees2ms_CHG.py
+
+# Keywords #
+SLiM simulation genomic - add more keywords!
+
+# Context #
+- add some context for the simulation -
+
+# Parameters #
+      1 NeMin	NeMax	r	mu	L	samp	chg_r
+     15 100	1000	1e-6	1e-6	100000	20	0.1

@@ -1,0 +1,16 @@
+- window_size, step and selection_regime : saved in stats_calc_window.txt -
+0.02	0.01	neutral
+0.02	0.01	neutral
+0.02	0.01	neutral
+0.02	0.01	neutral
+0.02	0.01	neutral
+0.02	0.01	neutral
+0.02	0.01	neutral
+0.02	0.01	neutral
+0.02	0.01	neutral
+0.02	0.01	neutral
+0.02	0.01	neutral
+0.02	0.01	neutral
+0.02	0.01	neutral
+0.02	0.01	neutral
+0.02	0.01	neutral
