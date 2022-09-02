@@ -85,8 +85,9 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-### General informations on simulations
-#### Tree-sequence recording and recapitation
+The goal of this project is to generate pseudo-genomic data of populations experiencing (or not) a selective sweeps from a single locus (beneficial) mutation under various demographic scenarios. These data will later be used in order to train deep-learning tools (CNN - YOLOv5) to detect selective sweeps both from a compilation of summary statistics and from raw genomic data, even in presence of demographic changes during the history of the populations - which could affect the classic pattern of skewed diversity around the beneficial mutation. Another goal will be to use these pseudo-genomic data to train another network to classify genomic data into one of these scenarios.
+
+### Tree-sequence recording and recapitation
 
 [![SLiM][SLiM-shield]][SLiM-url] - Simulations are run using the evolutionary simulation framework SLiM. We first run forward-time simulations with 'tree-sequence recording' focusing on the main event of interest of our scenario (rise of a beneficial mutation, demographic event,...) *without burn-in*. As an output, an "*id.trees*" file (containing ancestry information about the population simulated) and a corresponding "*id_parameters.txt*" file (containing the corresponding parameters of the simulation) are created.
 
@@ -105,9 +106,6 @@ For a more detailled look at how simulations internally run, please refer to the
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
-
 ### Prerequisites
 
 In order to get this repository scripts to work, you'll need a couple of tools and packages installed to your computer first.
@@ -121,6 +119,7 @@ In order to get this repository scripts to work, you'll need a couple of tools a
 
 * [![tskit][tskit-shield]][tskit-url] [![pyslim][pyslim-shield]][pyslim-url] [![msprime][msprime-shield]][msprime-url] - Please refer to the tskit website for detailled documentation and instructions on how to install theses packages.
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Installation
 
