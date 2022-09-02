@@ -112,14 +112,14 @@ To get a local copy up and running follow these simple example steps.
 
 In order to get this repository scripts to work, you'll need a couple of tools and packages installed to your computer first.
 
-* [![SLiM][SLiM-shield]][SLiM-url]- Please refer to SLiM manual for detailled documentation and instruction on how to install it. The manual and other SLiM resources can be found at http://messerlab.org/slim/.
+* [![SLiM][SLiM-shield]][SLiM-url] - Please refer to SLiM manual for detailled documentation and instruction on how to install it. The manual and other SLiM resources can be found at http://messerlab.org/slim/.
 
-* [![python][python3.9-shield]][python3.9-url]- You could either go to the Python website, or maybe just try :
+* [![python][python3.9-shield]][python3.9-url] - You could either go to the Python website, or maybe just try :
   ```sh
   apt-get install python3.9
   ```
 
-* [![tskit][tskit-shield]][tskit-url] [![pyslim][pyslim-shield]][pyslim-url] [![msprime][msprime-shield]][msprime-url]- Please refer to the tskit website for detailled documentation and instruction on how to install theses packages.
+* [![tskit][tskit-shield]][tskit-url] [![pyslim][pyslim-shield]][pyslim-url] [![msprime][msprime-shield]][msprime-url] - Please refer to the tskit website for detailled documentation and instructions on how to install theses packages.
 
 
 ### Installation
