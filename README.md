@@ -139,15 +139,12 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 
 ### Built With
 
-* [![Next][Next.js]][Next-url]
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
 * [![SLiM][SLiM-shield]][SLiM-url]
+* [![python][python3.9-shield]][python3.9-url]
+* [![tskit][tskit-shield]][tskit-url]
+* [![pyslim][pyslim-shield]][pyslim-url]
+* [![msprime][msprime-shield]][msprime-url]
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -294,7 +291,15 @@ Project Link: [https://github.com/glanfong/repo_name](https://github.com/glanfon
 [JQuery-url]: https://jquery.com 
 [SLiM-shield]: https://img.shields.io/badge/dynamic/xml?color=orange&label=SLiM&query=3.7&url=https%3A%2F%2Fmesserlab.org%2Fslim%2F
 [SLiM-url]: https://messerlab.org/slim/
+[python3.9-shield]: https://img.shields.io/badge/dynamic/xml?color=%233776AB&label=python&query=3.9&url=https%3A%2F%2Fwww.python.org%2Fdownloads%2Frelease%2Fpython-390%2F
+[python3.9-url]: https://www.python.org/downloads/release/python-390/
 
+[tskit-shield]: https://img.shields.io/badge/dynamic/xml?color=%231d799b&label=tskit&query=0.4&url=https%3A%2F%2Ftskit.dev%2F
+[tskit-url]: https://tskit.dev/
+[msprime-shield]: https://img.shields.io/badge/dynamic/xml?color=%231d799b&label=msprime&query=1.1&url=https%3A%2F%2Ftskit.dev%2Fmsprime
+[msprime-url]: https://tskit.dev/msprime/docs/stable/intro.html
+[pyslim-shield]: https://img.shields.io/badge/dynamic/xml?color=%231d799b&label=pyslim&query=0.7&url=https%3A%2F%2Ftskit.dev%2Fpyslim
+[pyslim-url]: https://tskit.dev/pyslim/docs/latest/introduction.html
 
 
 
