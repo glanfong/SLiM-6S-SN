@@ -88,14 +88,15 @@
 ### General informations on simulations
 #### Tree-sequence recording and recapitation
 
-([![SLiM][SLiM-shield]][SLiM-url]) - Simulations are run using the evolutionary simulation framework SLiM. We first run forward-time simulations with 'tree-sequence recording' focusing on the main event of interest of our scenario (rise of a beneficial mutation, demographic event,...) *without burn-in*. As an output, an "*id.trees*" file (containing ancestry information about the population simulated) and a corresponding "*id_parameters.txt*" file (containing the corresponding parameters of the simulation) are created.
+[![SLiM][SLiM-shield]][SLiM-url] - Simulations are run using the evolutionary simulation framework SLiM. We first run forward-time simulations with 'tree-sequence recording' focusing on the main event of interest of our scenario (rise of a beneficial mutation, demographic event,...) *without burn-in*. As an output, an "*id.trees*" file (containing ancestry information about the population simulated) and a corresponding "*id_parameters.txt*" file (containing the corresponding parameters of the simulation) are created.
 
 [![pyslim][pyslim-shield]][pyslim-url] - We then go through a process of *recapitation* using the python package pyslim (part of tskit) which, in short, takes the .trees file and uses coalescent simulation to provide a “prior history” for the initial generation of the simulation.
+
 [![msprime][msprime-shield]][msprime-url] - Following that, we use another python package, msprime (also part of tskit) to add neutral mutations to the tree sequence.
 
-This hybrid approach is a popular application of pyslim because coalescent algorithms, although more limited in the degree of biological realism they can attain, can be much faster than the forwards algorithms implemented in SLiM. Thus, by combining the main strenght of different approaches, we end up with a fast-generated, *quite biologically-accurate* tree file.
+This hybrid approach is a way of getting "the best of both worlds" because coalescent simulations, although more limited in the degree of biological realism they can attain, are much faster than the forwards simulations implemented in SLiM. Thus, by combining the main strenght of both approaches, we end up with a fast-generated, quite biologically-accurate, tree file.
 
-For a more detailled look at how simulations actually run, please refer to the comments in the <ins>XXX-SIM.slim</ins> files.
+For a more detailled look at how simulations internally run, please refer to the comments in the <ins>XXX-SIM.slim</ins> files.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -105,7 +106,7 @@ For a more detailled look at how simulations actually run, please refer to the c
 
 * [![SLiM][SLiM-shield]][SLiM-url]
 * [![python][python3.9-shield]][python3.9-url]
-* [![tskit][tskit-shield]][tskit-url], using [![pyslim][pyslim-shield]][pyslim-url] and [![msprime][msprime-shield]][msprime-url]
+* [![tskit][tskit-shield]][tskit-url] [![pyslim][pyslim-shield]][pyslim-url] [![msprime][msprime-shield]][msprime-url]
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -120,18 +121,24 @@ To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
+In order to get this repository scripts to work, you'll need a couple of tools and packagesinstalled to your computer first.
+
+1. [SLiM 3.7](http://messerlab.org/slim/) - Please refer to SLiM manual for detailled documentation and instruction on how to install it. The manual and other SLiM resources can be found at http://messerlab.org/slim/.
+
+2. [Python 3.9](https://www.python.org/downloads/release/python-390/) - You could always just try :
   ```sh
-  npm install npm@latest -g
+  apt install python3.9
   ```
+
+3. [tskit (+ pyslim and msprime)](https://tskit.dev/software/) - Please refer to the tskit website for detailled documentation and instruction on how to install theses packages.
 
 ### Installation
 
-1. Get a free API Key at [https://example.com](https://example.com)
+1. Make sure you've installed all the prerequisites.
+
 2. Clone the repo
    ```sh
-   git clone https://github.com/glanfong/repo_name.git
+   git clone https://github.com/glanfong/SLiM-6S-SN.git
    ```
 3. Install NPM packages
    ```sh
@@ -273,9 +280,9 @@ The actual part of the simulation when the demographic change occurs can be simu
 [Bootstrap-url]: https://getbootstrap.com
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
 [JQuery-url]: https://jquery.com 
-[SLiM-shield]: https://img.shields.io/badge/dynamic/xml?color=orange&label=SLiM&query=3.7&url=https%3A%2F%2Fmesserlab.org%2Fslim%2F
+[SLiM-shield]: https://img.shields.io/badge/dynamic/xml?color=%23C70039&label=SLiM&query=3.7&url=https%3A%2F%2Fmesserlab.org%2Fslim%2F
 [SLiM-url]: https://messerlab.org/slim/
-[python3.9-shield]: https://img.shields.io/badge/dynamic/xml?color=%23C70039&label=python&query=3.9&url=https%3A%2F%2Fwww.python.org%2Fdownloads%2Frelease%2Fpython-390%2F
+[python3.9-shield]: https://img.shields.io/badge/dynamic/xml?color=%233776AB&label=python&query=3.9&url=https%3A%2F%2Fwww.python.org%2Fdownloads%2Frelease%2Fpython-390%2F
 [python3.9-url]: https://www.python.org/downloads/release/python-390/
 
 [tskit-shield]: https://img.shields.io/badge/dynamic/xml?color=%231d799b&label=tskit&query=0.4&url=https%3A%2F%2Ftskit.dev%2F
