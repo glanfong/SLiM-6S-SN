@@ -37,7 +37,7 @@
 <h3 align="center">SLiM Simulations - 6S-SN</h3>
 
   <p align="center">
-    This repository contains the scripts, files and folders used to run both the **CHG (BTL/CST/EXP)** and **MGD (MGB/MIG/MGX)** parts of the 6S-SN-simulations with the use of the SLiM simulator and the pyslim python module. The goal is to generate genomic data under 6 different demographic scenarios (6S) but with a common selective event of either a selective sweep or not (SN). In the end, these simulations will be used to train a CNN to differenciate between the different scenarios and to detect the selective sweeps.
+    This repository contains the scripts, files and folders used to run both the CHG (BTL/CST/EXP) and MGD (MGB/MIG/MGX parts of the 6S-SN-simulations with the use of the SLiM simulator and the pyslim python module. The goal is to generate genomic data under 6 different demographic scenarios (6S) with either a selective sweep occuring or not (SN). These simulations will later be used to train a CNN to differenciate between the different scenarios and to detect the selective sweeps.
     <br />
     <a href="https://github.com/glanfong/repo_name"><strong>Explore the docs »</strong></a>
     <br />
@@ -97,8 +97,7 @@ This hybrid approach is a popular application of pyslim because coalescent algor
 
 For a more detailled look at how simulations actually run, please refer to the comments in the <ins>XXX-SIM.slim</ins> files.
 
-### Scenarios 
-#### CHG scenarios
+### Scenarios - CHG scenarios
 
 We first simulate 3 different scenarios, grouped under the common general name CHG (demographic CHanGe) : a scenario with a demographic BotTLeneck (BTL), a scenario with a population of ConSTant effective size (CST) and a scenario of demographic EXPansion (EXP).
 
@@ -119,6 +118,19 @@ It should be noted that a lot of things can be tweaked here. Please, refer to th
 
 The actual part of the simulation when the demographic change occurs can be simulated via coalescent simulations during recapitation. Thus, only the part when the selection of the beneficial mutation happens is simulated forward in time in SLiM. The .trees files are recapitated and neutral mutation are added afterward.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `glanfong`, `repo_name`, `twitter_handle`, `linkedin_username`, `lanfong.guillaume@gmail.com_client`, `lanfong.guillaume@gmail.com`, `SLiM-6S-SN`, `project_description`
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -135,6 +147,7 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 * [![Laravel][Laravel.com]][Laravel-url]
 * [![Bootstrap][Bootstrap.com]][Bootstrap-url]
 * [![JQuery][JQuery.com]][JQuery-url]
+* [![SLiM][https://messerlab.org/slim/]]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -279,6 +292,8 @@ Project Link: [https://github.com/glanfong/repo_name](https://github.com/glanfon
 [Bootstrap-url]: https://getbootstrap.com
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
 [JQuery-url]: https://jquery.com 
+
+
 
 
 
