@@ -147,7 +147,7 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 * [![Laravel][Laravel.com]][Laravel-url]
 * [![Bootstrap][Bootstrap.com]][Bootstrap-url]
 * [![JQuery][JQuery.com]][JQuery-url]
-* [![SLiM][https://messerlab.org/slim/]]
+* [![SLiM][SLiM-shield][SLiM-url]]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -292,7 +292,8 @@ Project Link: [https://github.com/glanfong/repo_name](https://github.com/glanfon
 [Bootstrap-url]: https://getbootstrap.com
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
 [JQuery-url]: https://jquery.com 
-
+[SLiM-shield]: https://img.shields.io/badge/dynamic/xml?color=orange&label=SLiM&query=3.7&url=https%3A%2F%2Fmesserlab.org%2Fslim%2F
+[SLiM-url]: https://messerlab.org/slim/
 
 
 
