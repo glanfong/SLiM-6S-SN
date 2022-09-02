@@ -87,12 +87,12 @@
 
 ### General informations on simulations
 <details>
-  <summary> Tree-sequence recording and recapitation</summary>
+  <summary> ##Tree-sequence recording and recapitation</summary>
 
-Simulations are run using the evolutionary simulation framework SLiM ([![SLiM][SLiM-shield]][SLiM-url]). We first run forward-time simulations with 'tree-sequence recording' focusing on the main event of interest of our scenario (rise of a beneficial mutation, demographic event,...) *without burn-in*. As an output, an "*id.trees*" file (containing ancestry information about the population simulated) and a corresponding "*id_parameters.txt*" file (containing the corresponding parameters of the simulation) are created.
+Simulations are run using the evolutionary simulation framework [![SLiM][SLiM-shield]][SLiM-url]. We first run forward-time simulations with 'tree-sequence recording' focusing on the main event of interest of our scenario (rise of a beneficial mutation, demographic event,...) *without burn-in*. As an output, an "*id.trees*" file (containing ancestry information about the population simulated) and a corresponding "*id_parameters.txt*" file (containing the corresponding parameters of the simulation) are created.
 
-We then go through a process of *recapitation* using pyslim ([![pyslim][pyslim-shield]][pyslim-url]) which, in short, takes the .trees file and uses coalescent simulation to provide a “prior history” for the initial generation of the simulation.
-Following that, we use msprime ([![msprime][msprime-shield]][msprime-url]) to add neutral mutations to the tree sequence.
+We then go through a process of *recapitation* using [![pyslim][pyslim-shield]][pyslim-url] which, in short, takes the .trees file and uses coalescent simulation to provide a “prior history” for the initial generation of the simulation.
+Following that, we use [![msprime][msprime-shield]][msprime-url] to add neutral mutations to the tree sequence.
 
 This hybrid approach is a popular application of pyslim because coalescent algorithms, although more limited in the degree of biological realism they can attain, can be much faster than the forwards algorithms implemented in SLiM. Thus, by combining the main strenght of different approaches, we end up with a fast-generated, *quite biologically-accurate* tree file.
 
@@ -127,7 +127,7 @@ The actual part of the simulation when the demographic change occurs can be simu
 
 * [![SLiM][SLiM-shield]][SLiM-url]
 * [![python][python3.9-shield]][python3.9-url]
-* [![tskit][tskit-shield]][tskit-url], using [![pyslim][pyslim-shield]][pyslim-url] and [![msprime][msprime-shield]][msprime-url]
+* [![tskit][tskit-shield]][tskit-url],[![pyslim][pyslim-shield]][pyslim-url], [![msprime][msprime-shield]][msprime-url]
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -284,6 +284,7 @@ Project Link: [https://github.com/glanfong/repo_name](https://github.com/glanfon
 [msprime-url]: https://tskit.dev/msprime/docs/stable/intro.html
 [pyslim-shield]: https://img.shields.io/badge/dynamic/xml?color=%231d799b&label=pyslim&query=0.7&url=https%3A%2F%2Ftskit.dev%2Fpyslim
 [pyslim-url]: https://tskit.dev/pyslim/docs/latest/introduction.html
+
 
 
 
