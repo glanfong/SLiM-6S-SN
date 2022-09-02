@@ -37,7 +37,7 @@
 <h3 align="center">SLiM Simulations - 6S-SN</h3>
 
   <p align="center">
-    This repository contains the scripts, files and folders used to run both the CHG (BTL/CST/EXP) and MGD (MGB/MIG/MGX parts of the 6S-SN-simulations with the use of the SLiM simulator and the pyslim python module. The goal is to generate genomic data under 6 different demographic scenarios (6S) with either a selective sweep occuring or not (SN). These simulations will later be used to train a CNN to differenciate between the different scenarios and to detect the selective sweeps.
+    This repository contains the scripts, files and folders used to run both the CHG (BTL/CST/EXP) and MGD (MGB/MIG/MGX parts of the 6S-SN-simulations with the use of the SLiM simulator and the tskit python module. The goal is to generate genomic data under 6 different demographic scenarios (6S) with and without a selective sweep occuring (SN). These simulations will later be used to train a CNN to detect the selective sweeps and to differenciate between the different scenarios.
     <br />
     <a href="https://github.com/glanfong/SLiM-6S-SN"><strong>Explore the docs »</strong></a>
     <br />
