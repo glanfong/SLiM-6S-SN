@@ -86,17 +86,18 @@
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
 ### General informations on simulations
-#### Tree-sequence recording and recapitation
+<details>
+  <summary> Tree-sequence recording and recapitation</summary>
 
-Simulations are run using the evolutionary simulation framework SLiM (https://messerlab.org/slim/). We first run forward-time simulations with 'tree-sequence recording' focusing on the main event of interest of our scenario (rise of a beneficial mutation, demographic event,...) *without burn-in*. As an output, an "*id.trees*" file (containing ancestry information about the population simulated) and a corresponding "*id_parameters.txt*" file (containing the corresponding parameters of the simulation) are created.
+Simulations are run using the evolutionary simulation framework SLiM ([![SLiM][SLiM-shield]][SLiM-url]). We first run forward-time simulations with 'tree-sequence recording' focusing on the main event of interest of our scenario (rise of a beneficial mutation, demographic event,...) *without burn-in*. As an output, an "*id.trees*" file (containing ancestry information about the population simulated) and a corresponding "*id_parameters.txt*" file (containing the corresponding parameters of the simulation) are created.
 
-We then go through a process of *recapitation* using pyslim (https://tskit.dev/pyslim/docs/latest/introduction.html) which, in short, takes the .trees file and uses coalescent simulation to provide a “prior history” for the initial generation of the simulation.
-Following that, we use msprime (https://tskit.dev/msprime/docs/stable/intro.html) to add neutral mutations to the tree sequence.
+We then go through a process of *recapitation* using pyslim ([![pyslim][pyslim-shield]][pyslim-url]) which, in short, takes the .trees file and uses coalescent simulation to provide a “prior history” for the initial generation of the simulation.
+Following that, we use msprime ([![msprime][msprime-shield]][msprime-url]) to add neutral mutations to the tree sequence.
 
 This hybrid approach is a popular application of pyslim because coalescent algorithms, although more limited in the degree of biological realism they can attain, can be much faster than the forwards algorithms implemented in SLiM. Thus, by combining the main strenght of different approaches, we end up with a fast-generated, *quite biologically-accurate* tree file.
 
 For a more detailled look at how simulations actually run, please refer to the comments in the <ins>XXX-SIM.slim</ins> files.
-
+</details>
 ### Scenarios - CHG scenarios
 
 We first simulate 3 different scenarios, grouped under the common general name CHG (demographic CHanGe) : a scenario with a demographic BotTLeneck (BTL), a scenario with a population of ConSTant effective size (CST) and a scenario of demographic EXPansion (EXP).
@@ -118,21 +119,6 @@ It should be noted that a lot of things can be tweaked here. Please, refer to th
 
 The actual part of the simulation when the demographic change occurs can be simulated via coalescent simulations during recapitation. Thus, only the part when the selection of the beneficial mutation happens is simulated forward in time in SLiM. The .trees files are recapitated and neutral mutation are added afterward.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `glanfong`, `repo_name`, `twitter_handle`, `linkedin_username`, `lanfong.guillaume@gmail.com_client`, `lanfong.guillaume@gmail.com`, `SLiM-6S-SN`, `project_description`
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -141,9 +127,7 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 
 * [![SLiM][SLiM-shield]][SLiM-url]
 * [![python][python3.9-shield]][python3.9-url]
-* [![tskit][tskit-shield]][tskit-url]
-* [![pyslim][pyslim-shield]][pyslim-url]
-* [![msprime][msprime-shield]][msprime-url]
+* [![tskit][tskit-shield]][tskit-url], using [![pyslim][pyslim-shield]][pyslim-url] and [![msprime][msprime-shield]][msprime-url]
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -291,7 +275,7 @@ Project Link: [https://github.com/glanfong/repo_name](https://github.com/glanfon
 [JQuery-url]: https://jquery.com 
 [SLiM-shield]: https://img.shields.io/badge/dynamic/xml?color=orange&label=SLiM&query=3.7&url=https%3A%2F%2Fmesserlab.org%2Fslim%2F
 [SLiM-url]: https://messerlab.org/slim/
-[python3.9-shield]: https://img.shields.io/badge/dynamic/xml?color=%233776AB&label=python&query=3.9&url=https%3A%2F%2Fwww.python.org%2Fdownloads%2Frelease%2Fpython-390%2F
+[python3.9-shield]: https://img.shields.io/badge/dynamic/xml?color=%23C70039&label=python&query=3.9&url=https%3A%2F%2Fwww.python.org%2Fdownloads%2Frelease%2Fpython-390%2F
 [python3.9-url]: https://www.python.org/downloads/release/python-390/
 
 [tskit-shield]: https://img.shields.io/badge/dynamic/xml?color=%231d799b&label=tskit&query=0.4&url=https%3A%2F%2Ftskit.dev%2F
