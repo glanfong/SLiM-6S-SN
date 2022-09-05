@@ -37,7 +37,7 @@
 <h3 align="center">SLiM Simulations - 6S-SN</h3>
 
   <p align="center">
-    This repository contains the scripts, files and folders used to run both the CHG (BTL/CST/EXP) and MGD (MGB/MIG/MGX parts of the 6S-SN-simulations with the use of the SLiM simulator and the tskit python module. The goal is to generate genomic data under 6 different demographic scenarios (6S) with and without a selective sweep occuring (SN). These simulations will later be used to train a CNN to detect the selective sweeps and to differenciate between the different scenarios.
+    This repository contains the scripts, files and folders used to run both the CHG (BTL/CST/EXP) and MGD (MGB/MIG/MGX) parts of the 6S-SN-simulations with the use of the SLiM simulator and the pyslim python module. The goal is to generate genomic data under 6 different demographic scenarios (6S) with either a selective sweep occuring or not (SN). These simulations will later be used to train a CNN to differenciate between the different scenarios and to detect the selective sweeps.
     <br />
     <a href="https://github.com/glanfong/SLiM-6S-SN"><strong>Explore the docs »</strong></a>
     <br />
@@ -87,7 +87,7 @@
 
 The goal of this project is to generate pseudo-genomic data of populations experiencing (or not) a selective sweeps from a single locus (beneficial) mutation under various demographic scenarios. These data will later be used in order to train deep-learning tools (CNN - YOLOv5) to detect selective sweeps both from a compilation of summary statistics and from raw genomic data, even in presence of demographic changes during the history of the populations - which could affect the classic pattern of skewed diversity around the beneficial mutation. Another goal will be to use these pseudo-genomic data to train another network to classify genomic data into one of these scenarios.
 
-### Tree-sequence recording and recapitation
+### Hybrid Simulations : Tree-sequence recording and recapitation
 
 [![SLiM][SLiM-shield]][SLiM-url] - Simulations are run using the evolutionary simulation framework SLiM. We first run forward-time simulations with 'tree-sequence recording' focusing on the main event of interest of our scenario (rise of a beneficial mutation, demographic event,...) *without burn-in*. As an output, an "*id.trees*" file (containing ancestry information about the population simulated) and a corresponding "*id_parameters.txt*" file (containing the corresponding parameters of the simulation) are created.
 
@@ -125,18 +125,12 @@ In order to get this repository scripts to work, you'll need a couple of tools a
 
 1. Make sure you've correctly installed all the prerequisites.
 
-2. Clone the repo
+2. Clone the repo :
    ```sh
    git clone https://github.com/glanfong/SLiM-6S-SN.git
    ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
+
+3. The pipeline should be immediately ready to use.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -144,6 +138,86 @@ In order to get this repository scripts to work, you'll need a couple of tools a
 
 <!-- USAGE EXAMPLES -->
 ## Usage
+
+The two folders *CHG_SN/* and *MGD_SN/* correspond to simulations for the tree scenarios without migration and for the three scenarios with migration, respectively. For starters, go inside both the *CHG_SN/* and *MGD_SN/* folders and check for the existence of *bin/* and *sim/* folders. If you're missing either of them, please re-clone the repo. If this problem persist, please open an issue about it or pm me directly.
+
+<details>
+  <summary>Each run of this pipeline (aka each new simulation run) will create a new folder inside *sim/*, organized as follow :</summary>
+
+  ```
+  SCE_SN
+  │
+  └─ bin 
+  │   └─ (see 'bin folder - contents' section for details)
+  └─ sim
+      └─  SCE-YMMDD-XXXX
+      │       ├── param
+      │       │   └── prior.txt
+      │       ├── results
+      │       │    └── id_sweep.ms
+      │       │    ├── id_sweep_parameters.txt
+      │       │    ├── id_sweep_positions.txt
+      │       │    ├── id_sweep_recap_mut_trees.trees
+      │       │    ├── id_sweep_recap.trees
+      │       │    ├── id_sweep_sumStats.txt
+      │       │    ├── id_sweep.trees
+      │       │    ├── (...)
+      │       │    ├── debug.txt
+      │       │    ├── log.txt
+      │       │    ├── stats_calc_window.txt
+      │       │    └── summary.txt
+      │       ├── results_Neutral
+      │       │    └── id_neutral.ms
+      │       │    ├── id_neutral_parameters.txt
+      │       │    ├── id_neutral_positions.txt
+      │       │    ├── id_neutral_recap_mut_trees.trees
+      │       │    ├── id_neutral_recap.trees
+      │       │    ├── id_neutral_sumStats.txt
+      │       │    ├── id_neutral.trees
+      │       │    ├── (...)
+      │       │    ├── debug.txt
+      │       │    ├── log.txt
+      │       │    ├── stats_calc_window.txt
+      │       │    └── summary.txt
+      │       └── metadata
+      └─ tuto
+  ```
+  *With SCE = CHG or MGD, Y = PhD Year, MM = month, DD = day, XXXX = random run ID.*
+</details>
+
+### Running SCE_SN simulations - SCE = CHG or MGD
+
+Go to *SCE_SN/bin/*, then from there :
+
+1. Go to *./parameters/*, and create as many 'parametersX.txt' files as you want and specify your desired parameters following the example of the 'parameters1.txt'. You could also just modify parameters1.txt if you only want to run simulations for a single set of parameters.
+
+2. Go back to *SCE_SN/bin/*.
+
+3. Check the 'run_SCE.bash' script and specify the window width and step at line 33 and 40 (*default window = 0.02, default step = 0.01*).
+
+4. Check the 'jobs_SCE.bash' script and make sure that the part use to run the scripts locally is uncommented, while the part used to run the scripts on ifb is commented.
+
+5. Run the pipeline from *SCE_SN/bin/* :
+   ```sh
+   bash jobs_SCE.bash
+   ```
+
+The pipeline should run, displaying informations about each step :
+
+1. SLiM sweep simulations
+2. Recapitation of sweep simulations and creation .ms file from the recapited tree file
+3. Computing of summary statistics from the .ms files
+
+4. SLiM neutral simulations
+5. Recapitation of sweep simulations and creation .ms file from the recapited tree file
+6. Computing of summary statistics from the .ms files
+7. Creating .png files (*to add*)
+8. Simulation completed
+
+
+
+
+
 
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
