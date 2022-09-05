@@ -39,7 +39,7 @@ for file in $(ls ../results/ | grep parameters.txt);do
 
 # Step 1 : run SLiM simulations using id_sweep_parameters.txt
 
-    echo -e "- SLiM simulating - Neutral sim_id ${id} -"
+    echo -e "- SLiM simulating - NEUTRAL - sim_id ${id} -"
 
     while [ ! -f ./${id}_neutral_parameters.txt ]
     do
@@ -52,7 +52,7 @@ for file in $(ls ../results/ | grep parameters.txt);do
     slim -t -m -d sim_id=${id} -d NeA=${NeA} -d NeB=${NeB} -d s=${s} -d r=${r} -d mu=${mu} -d L=${L} -d m=${m} -d rise_gen=${rise_gen} -d end_gen=${end_gen} -d samp=${samp} -d chg_r=${chg_r} -d split_gen=${split_gen} -d chg_gen=${chg_gen} -d debug=F  ../../../bin/MGD_N-SIM.slim > /dev/null
     done
     
-    echo -e "- SLiM simulation - Neutral ${id} done -\n"
+        echo -e " - NEW SLiM INSTANCE - NEUTRAL - sim_id ${id} - \n "
 
     # update summary file
     echo -e "- updating summary file -"

@@ -13,8 +13,6 @@ module load msprime/1.1.1
 module load pyslim/0.700
 module load slim/3.7.1
 
-#!/usr/bin/bash
-
 # Keywords : run simulations SLiM bash demographic change CHG
 
 # Run CHG-SIM.slim based on the contents of prior.txt file
@@ -34,4 +32,4 @@ while IFS= read -r line; do
     bash run_CHG.bash ${NeMin} ${NeMax} ${r} ${mu} ${L} ${samp} ${chg_r} ${n_rep}
 done < <(grep -v "#" ./parameters/$1)
 
-echo -e "### ALL PARAMETERS FINISHED ###\n"
+echo -e "### SIMULATION COMPLETED ###\n"

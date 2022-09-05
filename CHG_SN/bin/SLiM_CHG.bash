@@ -38,7 +38,7 @@ else :
 
 # Step 1 : run SLiM simulations using prior.txt parameters
 
-    echo -e "- SLiM simulating - sim_id ${id} -"
+    echo -e "- SLiM simulating - SWEEP - sim_id ${id} -"
 
     while [ ! -f ./${id}_sweep_parameters.txt ]
     do
@@ -47,11 +47,11 @@ else :
             rm checkpoint.txt
         fi
 
-        echo -e " - NEW SLiM INSTANCE - \n "
+        echo -e " - NEW SLiM INSTANCE - SWEEP - sim_id ${id} - \n "
     slim -t -m -d sim_id=${id} -d Ne=${Ne} -d r=${r} -d mu=${mu} -d L=$((${L}-1)) -d samp=${samp} -d chg_r=${chg_r} -d debug=F  ../../../bin/CHG-SIM.slim > /dev/null
     done
     
-    echo -e "- SLiM simulation ${id} done -\n"
+    echo -e "- SLiM simulation - SWEEP - sim_id ${id} done -\n"
 
     # update summary file
     echo -e "- updating summary file -"
@@ -61,4 +61,4 @@ else :
     done 
 } < ../param/prior.txt
 
-echo -e "### SIMULATIONS FINISHED ###\n"
+echo -e "### SIMULATIONS SWEEP FINISHED ###\n"

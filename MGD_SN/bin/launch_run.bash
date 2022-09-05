@@ -32,4 +32,4 @@ while IFS= read -r line; do
     bash run_MGD.bash ${NeMin} ${NeMax} ${r} ${mu} ${L} ${samp} ${chg_r} ${n_rep}
 done < <(grep -v "#" ./parameters/$1)
 
-echo -e "### ALL PARAMETERS FINISHED ###\n"
+echo -e "### SIMULATION COMPLETED ###\n"
