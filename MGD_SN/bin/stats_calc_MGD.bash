@@ -27,7 +27,7 @@ read
 # Step 3 : use msmscalc_onePop.py to compute summary statistics of the population
 
     nIndividuals=$((${samp}*2)) # number of HAPLOID individuals
-    nb_pop=1 # MGD simulations contain only 1 (one) population -> ??? 'we actually work on only one population' I guess ?
+    nReplicates=1
 
     window_size=$1
     step=$2
@@ -38,7 +38,7 @@ read
 
 
     echo "- statistics computing - sim_id ${id} -"
-    python3 ../../../bin/msmscalc_onePop.py ./${id} ${nIndividuals} ${nb_pop} ${L} ${window_size} ${step} ${id} ${selection_regime};
+    python3 ../../../bin/msmscalc_onePop.py ./${id} ${nIndividuals} 1 ${L} ${window_size} ${step} $nReplicates ${id} ${selection_regime}
     echo "- statistics computed - sim_id ${id} "
     echo -e "- ## Replica ${id} DONE ## -\n"
 

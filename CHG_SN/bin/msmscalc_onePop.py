@@ -10,8 +10,10 @@ from numpy import nanmean
 from numpy import std 
 from numpy import sum as somme
 from numpy import sqrt
+from numpy import power
 from scipy.stats import pearsonr
 from decimal import Decimal
+from collections import Counter
 
 minNumbSNP = 5 # statistics (pi, tajD, pearson's, etc ...) are only computed if a number of SNPs>= minNumbSNP is present within the studied fragment
 
@@ -21,24 +23,26 @@ nCombParam = int(sys.argv[3]) # number of simulations (one simulation correspond
 regionSize = int(sys.argv[4]) # length of the chromosome
 width = float(sys.argv[5]) # width = 0.1
 step = float(sys.argv[6]) # step = 0.05
-rootOutputFileName = sys.argv[7] 
-selection = sys.argv[8]
+nRep = int(sys.argv[7]) # number of replicates of the same combination of parameters (nRep=1 for Guillaume)
+min_width = 0.1
+rootOutputFileName = sys.argv[8] 
+selectionRegime = sys.argv[9]
 
-if (selection == "sweep"):
+if (selectionRegime == "sweep"):
 	inputFileName = inputFileName + "_sweep.ms"
-elif (selection == "neutral"):
+elif (selectionRegime == "neutral"):
 	inputFileName = inputFileName + "_neutral.ms"
 
 ##################
 # don't touch    #
-nRep = 1         #
+# nRep = 1         #
 ##################
 
 def stdCustom(liste, moyenne, longueurRegion):
 	# 'moyenne' = mean of ['liste' (size L) + longueurRegion x 0]
 	res = 0.0
 	for i in liste:
-		res += (i - moyenne)**2
+		res += power((i - moyenne), 2)
 	res /= longueurRegion
 	return(sqrt(res))
 
@@ -54,7 +58,7 @@ def getParams(x):
 	return(res)
 
 
-def parse_msms(x, nIndiv):
+def parse_msms(x, nIndiv, nCombParam, nRep):
 	# returns the simulated alignments
 	# x = msms output file
 	compteur = nCombParam * nRep
@@ -92,7 +96,7 @@ def parse_msms(x, nIndiv):
 #				print(a["kxy_allSNP"])
 				res[nLocus]['kxy'] = tmp['kxy_allSNP'] 
 				res[nLocus]['kxy_singletons'] = tmp['kxy_singletons'] 
-				del res[nLocus]['haplotypes']	
+#				del res[nLocus]['haplotypes']	
 	infile.close()
 	return(res)
 
@@ -173,16 +177,16 @@ def tajimaD(nInd, pi, nS):
 		a1, a2 = 0.0, 0.0
 		for i in range(nInd-1):
 			a1 += 1.0/(i+1.0)
-			a2 += 1.0/((i+1)**2)
+			a2 += 1.0/power(i+1, 2)
 		# b1 and b2
 		b1 = (nInd + 1.0) / (3.0 * (nInd - 1.0))
-		b2 = 2.0 * (nInd**2 + nInd + 3.0) / (9.0*nInd * (nInd - 1.0))
+		b2 = 2.0 * (power(nInd, 2) + nInd + 3.0) / (9.0*nInd * (nInd - 1.0))
 		# c1 and c2
 		c1 = b1 - 1.0 / a1
-		c2 = b2 - (nInd + 2.0) / (a1 * nInd) + a2/(a1**2.0)
+		c2 = b2 - (nInd + 2.0) / (a1 * nInd) + a2/(power(a1, 2))
 		# e1 and e2
 		e1 = c1/a1
-		e2 = c2/(a1**2 + a2)
+		e2 = c2/(power(a1, 2) + a2)
 		# pi is assumed to already be: sum(pi over SNPs)/nCombination, let's compute thetaW
 		thetaW = nS / a1
 		# denominateur
@@ -229,12 +233,147 @@ def achazY(n, kxy):
 		return((1.0 * numerateur)/(1.0 * denominateur))
 
 
-def calc_window(rep, nRep, bins, regionSize, nIndiv):
+def LD(haplotypes, positions_bin, width, min_width):
+	# haplotypes : list with all chromosomes
+	# positions: list of positions of all SNPs (between 0 and 1)
+	# width: size of a window (between 0 and 1, in ms unit)
+	# min_width: fraction of the width used as a minimum distance between two SNP to compute LD. If width=0.1 and min_width=0.5, so, only pairs of SNP distant at
+	# 	a minimum of 0.05 will be used
+	min_dist = min_width*width
+	nPos = len(positions_bin)
+	nIndiv = len(haplotypes)
+
+	D = []
+	r_sqr = []
+	for pos_a in range(nPos): # loop over positions of SNP a (to compute LD between a and b)
+		pos_b = [ i for i in range(nPos) if positions_bin[i] > (positions_bin[pos_a]+min_dist) ]
+		
+		for b in pos_b:
+			n_a1 = 0
+			n_b1 = 0
+			n_a1_b1 = 0
+			for ind in range(nIndiv):
+				a1 = haplotypes[ind][ pos_a ]
+				b1 = haplotypes[ind][ b ]
+
+				if a1 == '1':
+					n_a1 += 1
+					
+					if b1 =='1':
+						n_b1 += 1
+						n_a1_b1 += 1
+				else:
+					if b1 == '1':
+						n_b1 += 1
+			
+			f_a1 = n_a1/nIndiv
+			f_b1 = n_b1/nIndiv
+			f_a1_b1 = n_a1_b1/nIndiv
+			
+			D_tmp = f_a1_b1 - f_a1 * f_b1
+			D.append(D_tmp)
+			
+			denom = f_a1 * (1-f_a1) * f_b1 * (1-f_b1)
+			if denom==0:
+				r_sqr_tmp=nan
+			else:
+				r_sqr_tmp=power(D_tmp, 2)/denom
+			r_sqr.append(r_sqr_tmp)
+	
+	if D.count(nan)==len(D):
+		D_mean=nan
+	else:
+		D_mean=nanmean(D)
+
+	if r_sqr.count(nan)==len(r_sqr):
+		r_sqr_mean=nan
+	else:
+		r_sqr_mean=nanmean(r_sqr)
+	
+	res = {'D':D_mean, 'r2':r_sqr_mean}
+	return(res)	
+
+def haploStats(haplotypes, bins, positions, width, min_width):
+	# haplotypes : list with all chromosomes
+	# bins: dictionnary with coordinates (start/end) of each bin between 0 (first position of the chromosome) and 1 (last position of the chromosome)
+	# positions: list of positions of all SNPs (between 0 and 1)
+	# width: size of a window (between 0 and 1, in ms unit)
+	# min_width: fraction of the width used as a minimum distance between two SNP to compute LD. If width=0.1 and min_width=0.5, so, only pairs of SNP distant at
+	# 	a minimum of 0.05 will be used
+	res = {}
+	for bin_tmp in bins:
+		pos_bin_tmp = [ i for i in range(len(positions)) if positions[i]>bins[bin_tmp]['min'] and positions[i]<bins[bin_tmp]['max'] ]
+		if len(pos_bin_tmp)<=2:
+			res[bin_tmp]={'binID':bin_tmp, 'nHaplo':1, 'H1':1, 'H2':nan, 'H12':1, 'H2overH1':nan, 'D':nan, 'r2':nan}
+
+		else:
+			start_tmp = min(pos_bin_tmp)
+			end_tmp = max(pos_bin_tmp)
+			
+			positions_bin = positions[start_tmp:(end_tmp+1)]
+			
+			haplotype_tmp = []
+			for i in haplotypes:
+				haplotype_tmp.append(i[start_tmp:(end_tmp+1)])
+
+			cnt = 0
+			haploCount = Counter(haplotype_tmp)
+
+			# nHaplo
+			## number of haplotypes
+			nHaplo = len(haploCount)
+
+			# H1
+			## The probability that two haplotypes, taken randomly from the population, are identical.
+			if nHaplo <= 1: # if a single fixed haplotype
+				H1 = 1
+			else:
+				H1 = sum([ power((count/nIndiv), 2) for count in haploCount.values() ])
+
+			# H12
+			## The haplotype homozygosity, only the two most common haplotypes are treated as one. Useful for looking for genetic sweeps.
+			## If there is only one fixed haplotype, H12 = haplotype homozygosity = 1.
+			## Cite: Garud, N. R. et al. (2015). Recent Selective Sweeps in North American Drosophila melanogaster Show Signatures of Soft Sweeps. PLOS Genetics 11 (2), pp. 1–32.
+
+			if nHaplo <= 2:
+				# if a single fixed haplotype, or only two haplotypes
+				H12 = 1
+			else:
+				top_two_freq = [ count[1]/nIndiv for count in haploCount.most_common(2) ]
+				n1 = sum([ power(count/nIndiv, 2) for count in haploCount.values() ])
+				p1 = top_two_freq[0]
+				p2 = top_two_freq[1]
+
+				H12 = n1 + 2 * p1 * p2
+
+			# H2overH1
+			## The haplotype homozygosity ignoring the most common haplotype
+			## Cite: Garud, N. R. et al. (2015). Recent Selective Sweeps in North American Drosophila melanogaster Show Signatures of Soft Sweeps. PLOS Genetics 11 (2), pp. 1–32.
+
+			if nHaplo <= 1:
+				H2 = nan
+				H2overH1 = nan
+			else:
+				most_frequent = haploCount.most_common(1)[0][1] / nIndiv
+				H2 = H1 - power(most_frequent, 2)
+				H2overH1 = H2/H1
+			
+			# LD
+			res_LD = LD(haplotypes=haplotype_tmp, positions_bin=positions_bin, width=width, min_width=min_width)
+			res[bin_tmp]={'binID':bin_tmp, 'nHaplo':nHaplo, 'H1':H1, 'H2':H2, 'H12':H12, 'H2overH1':H2overH1, 'D':res_LD['D'], 'r2':res_LD['r2']}
+	return(res)
+
+def calc_window(rep, nRep, bins, regionSize, nIndiv, totalData, min_width):
 	# function used to return list of 'positions' and 'associated pi' within different bins, over replicates in the
 	# rep = the id of the surveyed replicated simulations
 	# nRep = number of times the simulation had been replicated
 	nPairwiseComp = (nIndiv * (nIndiv - 1.0)) / 2.0
 	bins_tmp = {} # bins_tmp[bin_Id][replicate_Id][['positions'], ['kxy']]
+
+	resLD = {} # resLD[iteration][bin]['binID', 'nHaplo', 'H1', 'H2', 'H12', 'H2overH1', 'D', 'r2']
+	for i in range(nRep):
+		resLD[i]=haploStats(haplotypes=totalData[i]['haplotypes'], bins=bins, positions=totalData[i]['positions'], width=width, min_width=min_width)
+	
 	for i in bins:
 		bins_tmp[i] = {}
 		for j in range(nRep):
@@ -253,13 +392,20 @@ def calc_window(rep, nRep, bins, regionSize, nIndiv):
 	#		print(" ".join([ str(totalData[rep*nRep]['params'][k]) for k in totalData[rep*nRep]['params'] ])) # print test of homogeneity in parameters over replicates
 	res = {}
 	for i in bins: # compute statistics #1 over bins and over #2 replicates
-		meanPi_tmp = []
+		meanPi_tmp = [] # values of pi at bin 'i' for different replicates
 		stdPi_tmp = []
 		pearsonR_tmp = []
 		pearsonPval_tmp = []
 		tajimaD_tmp = []
 		thetaW_tmp = []
 		achazY_tmp = []
+		nHaplo_tmp = []
+		H1_tmp = []
+		H2_tmp = []
+		H12_tmp = []
+		H2overH1_tmp = []
+		D_tmp = []
+		r2_tmp = []
 		pos_tmp = []
 		size_tmp = regionSize * (bins[i]['max'] - bins[i]['min'])
 		for j in range(nRep):
@@ -278,6 +424,13 @@ def calc_window(rep, nRep, bins, regionSize, nIndiv):
 			thetaW_tmp.append(tajimaD_thetaW[1])
 			achazY_tmp.append(achazY(nIndiv, bins_tmp[i][j]['kxy']))
 			pos_tmp.append(mean(bins_tmp[i][j]['positions']))
+			nHaplo_tmp.append(resLD[j][i]['nHaplo'])
+			H1_tmp.append(resLD[j][i]['H1'])
+			H2_tmp.append(resLD[j][i]['H2'])
+			H12_tmp.append(resLD[j][i]['H12'])
+			H2overH1_tmp.append(resLD[j][i]['H2overH1'])
+			D_tmp.append(resLD[j][i]['D'])
+			r2_tmp.append(resLD[j][i]['r2'])
 			#def stdCustom(liste, moyenne, longueurRegion):
 		res[i] = {}
 		if meanPi_tmp.count(nan)==len(meanPi_tmp):
@@ -315,6 +468,41 @@ def calc_window(rep, nRep, bins, regionSize, nIndiv):
 		else:
 			res[i]['achazY'] = round(nanmean(achazY_tmp), 5)
 		
+		if nHaplo_tmp.count(nan)==len(nHaplo_tmp):
+			res[i]['nHaplo'] = nan
+		else:
+			res[i]['nHaplo'] = round(nanmean(nHaplo_tmp), 5)
+		
+		if H1_tmp.count(nan)==len(H1_tmp):
+			res[i]['H1'] = nan
+		else:
+			res[i]['H1'] = round(nanmean(H1_tmp), 5)
+		
+		if H2_tmp.count(nan)==len(H2_tmp):
+			res[i]['H2'] = nan
+		else:
+			res[i]['H2'] = round(nanmean(H2_tmp), 5)
+		
+		if H12_tmp.count(nan)==len(H12_tmp):
+			res[i]['H12'] = nan
+		else:
+			res[i]['H12'] = round(nanmean(H12_tmp), 5)
+		
+		if H2overH1_tmp.count(nan)==len(H2overH1_tmp):
+			res[i]['H2overH1'] = nan
+		else:
+			res[i]['H2overH1'] = round(nanmean(H2overH1_tmp), 5)
+		
+		if D_tmp.count(nan)==len(D_tmp):
+			res[i]['D'] = nan
+		else:
+			res[i]['D'] = round(nanmean(D_tmp), 5)
+		
+		if r2_tmp.count(nan)==len(r2_tmp):
+			res[i]['r2'] = nan
+		else:
+			res[i]['r2'] = round(nanmean(r2_tmp), 5)
+		
 		if pos_tmp.count(nan)==len(pos_tmp):
 			res[i]['position'] = nan
 		else:
@@ -322,10 +510,16 @@ def calc_window(rep, nRep, bins, regionSize, nIndiv):
 	return(res)
 
 
+# compute the average pi over replicates
+# define the bin boundaries
+bins = window(width, step)
+
 # parse the ms output file
 #inputFileName = "output_test.msms"
-totalData = parse_msms(inputFileName, nIndiv)
+totalData = parse_msms(inputFileName, nIndiv, nCombParam, nRep)
 
+min_width = 0.1
+pouet = haploStats(haplotypes=totalData[0]['haplotypes'], bins=bins, positions=totalData[0]['positions'], width=width, min_width=min_width)
 
 # compute the diversity for all SNPs, for all alignments
 # commented block because: loop is now imbedded in the parse_msms function to save memory
@@ -341,12 +535,6 @@ totalData = parse_msms(inputFileName, nIndiv)
 #		del totalData[i]['haplotypes']	
 
 
-
-# compute the average pi over replicates
-# define the bin boundaries
-bins = window(width, step)
-
-
 # prepare the output files:
 stats_out = ""
 for i in bins:
@@ -357,6 +545,13 @@ for i in bins:
 	stats_out += 'achazY_bin{0}\t'.format(i)
 	stats_out += 'pearson_r_bin{0}\t'.format(i)
 	stats_out += 'pearson_pval_bin{0}\t'.format(i)
+	stats_out += 'nHaplo_bin{0}\t'.format(i)
+	stats_out += 'H1_bin{0}\t'.format(i)
+	stats_out += 'H2_bin{0}\t'.format(i)
+	stats_out += 'H12_bin{0}\t'.format(i)
+	stats_out += 'H2overH1_bin{0}\t'.format(i)
+	stats_out += 'D_bin{0}\t'.format(i)
+	stats_out += 'r2_bin{0}\t'.format(i)
 stats_out = stats_out.strip() + "\n"
 
 
@@ -370,7 +565,7 @@ pos_out = pos_out.strip() + "\n"
 for i in range(nCombParam): # loop over combination of parameters
 #	print("simulation {0} over a total of {1}: {2}".format(i, nCombParam, time.strftime("%H:%M:%S")))
 	# TODO: calling this function tajimaD(nInd, pi, nS, size)
-	a = calc_window(i, nRep=nRep, bins=bins, regionSize=regionSize, nIndiv=nIndiv) # get summary statistics per bin for the replicate i
+	a = calc_window(i, nRep=nRep, bins=bins, regionSize=regionSize, nIndiv=nIndiv, totalData=totalData, min_width=min_width) # get summary statistics per bin for the replicate i
 	for j in bins:
 		stats_out += "{0}\t".format(a[j]['pi_avg'])
 		stats_out += "{0}\t".format(a[j]['thetaW'])
@@ -379,29 +574,44 @@ for i in range(nCombParam): # loop over combination of parameters
 		stats_out += "{0}\t".format(a[j]['achazY'])
 		stats_out += "{0}\t".format(a[j]['pearson_r'])
 		stats_out += "{0}\t".format(a[j]['pearson_pval'])
+		stats_out += "{0}\t".format(a[j]['nHaplo'])
+		stats_out += "{0}\t".format(a[j]['H1'])
+		stats_out += "{0}\t".format(a[j]['H2'])
+		stats_out += "{0}\t".format(a[j]['H12'])
+		stats_out += "{0}\t".format(a[j]['H2overH1'])
+		stats_out += "{0}\t".format(a[j]['D'])
+		stats_out += "{0}\t".format(a[j]['r2'])
 		pos_out += "{0}\t".format(a[j]['position'])
 	stats_out = stats_out.strip() + "\n"
 	pos_out = pos_out.strip() + "\n"
 
-# OUTPUT BASED ON "selection regime" #
 
-if (selection == "sweep"):
+# output based on selectionRegime 
+
+if (selectionRegime == "sweep"):
 	outfile = open("{0}_sweep_positions.txt".format(rootOutputFileName), "w")
-elif (selection == "neutral"):
+	outfile.write(pos_out)
+	outfile.close()
+
+elif (selectionRegime == "neutral"):
 	outfile = open("{0}_neutral_positions.txt".format(rootOutputFileName), "w")
+	outfile.write(pos_out)
+	outfile.close()
 
-outfile.write(pos_out)
-outfile.close()
-
-if (selection == "sweep"):
+if (selectionRegime == "sweep"):
 	outfile = open("{0}_sweep_sumStats.txt".format(rootOutputFileName), "w")
-elif (selection == "neutral"):
+	outfile.write(stats_out)
+	outfile.close()
+
+elif (selectionRegime == "neutral"):
 	outfile = open("{0}_neutral_sumStats.txt".format(rootOutputFileName), "w")
-outfile.write(stats_out)
-outfile.close()
+	outfile.write(stats_out)
+	outfile.close()
 
 
-### MODIFS PERSO ###
 
 
-# Modif les noms des outputs pour "id_sweep_sumStats.txt"
+#######
+# TMP #
+#######
+
