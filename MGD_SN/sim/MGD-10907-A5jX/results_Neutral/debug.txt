@@ -1,1 +1,0 @@
-sim_id	gen	mutFreq	s	rise_gen	end_gen	split_gen	fail_count	max_fail	seed	initSeed

@@ -1,2 +1,0 @@
-sim_id	outcome	NeA	NeB	s	r	mu	L	m	mut_pos	rise_gen	fix_gen	end_gen	samp	mut_freq	run_CPU_time(s)	chg_r	split_gen	chg_gen
-104	SEG	8910	891	0.0232264	1.0e-06	1.0e-06	99999	1.12233e-05	10090	4	NF	643	20	0.457464	6.82896	10	7067	2015
