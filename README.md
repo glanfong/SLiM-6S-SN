@@ -3,9 +3,11 @@
 ## About this repository
 This repository contains the scripts, files and folders used to run both the CHG (BTL/CST/EXP) and MGD (MGB/MIG/MGX) parts of the 6S-SN-simulations with the use of the SLiM simulator and the pyslim python module. The goal is to generate genomic data under 6 different demographic scenarios (6S) with either a selective sweep occuring or not (SN). These simulations will later be used to train a CNN to differenciate between the different scenarios and to detect the selective sweeps.
 
-## Simple Illustrative Example - Simulation of 1 run of each scenario BTL/CST/EXP and creation of a dataset
+## Simple Illustrative Example - 
 ### Step 1 - SLiM Simulations and Recapitation
-First, we will run the SLiM simulations from specified parameters.
+For this example, we will **simulate 1 run of each CHG scenario (BTL/CST/EXP)** and go through the **creation of a dataset** from those simulations.
+
+First, we will **run the SLiM simulations** from specified parameters.
 - Go to CHG_SN/bin/
 - Go to parameters/ and edit/create one parametersX.txt file per run (1 run = 1 set of parameters) ; for example, here we will use :
 <p align="left"> parameters1.txt </p>
@@ -35,11 +37,12 @@ First, we will run the SLiM simulations from specified parameters.
 ```
 bash jobs_CHG.bash
 ```
+Please, do not that runs with different scenarios will take different amount of time to reach completion. As a general rule of thumb, BTL runs are expected to be the fastest, EXP runs to be the longest and CST in-between.
+
 You will end up with one run folder per job, each containing 3 types of files per simulation (***selection** being either **sweep** or **neutral***) :
 - **xxx_*selection*.trees** : the tree-sequence data (a concise encoding of the correlated genealogies along the chromosome).
 - **xxx_*selection*_parameters.txt** : parameters associated with this specific simulation (populations sizes, selective coefficient of the beneficial mutation, etc.).
-- **xxx_*selection*.ms** : concise format to encode the sample genomes. Contains the number of segregated
-sites, their position within the genome. And the haplotype information (derived allele is denoted with a 1 and the ancestral type with a 0). 
+- **xxx_*selection*.ms** : concise format to encode the sample genomes. Contains the number of segregated sites, their position within the genome, and the state of the allele present at the corresponding SNP (derived allele is denoted with a 1 and the ancestral type with a 0). 
 
 ### Step 2 - Compute Summary Statistics
 
@@ -47,23 +50,27 @@ sites, their position within the genome. And the haplotype information (derived 
 
 Now, we will compute summary statistics from sliding bins along the genomes. To do so :
 
-- Clone the following repo : https://github.com/popgenomics/deepDILS
--  On each simulation, run the following command : 
+- Clone the following repo : https://github.com/popgenomics/deepDILS on same folder as your bin/ and sim/ folders.
+```
+git clone https://github.com/popgenomics/deepDILS
+```
+-  Then, on each simulation, run the following command : 
 ```
 python3 ../scripts/msmscalc_onePop.py infile=${iteration}_${model}.ms nIndiv=40 nCombParam=1 regionSize=100000 width=0.01 step=0.005 nRep=1 root=${iteration}_${model}
 ```
-To streamline this process, you could use the script 'msmscalc_jobArray.slurm' on each results/ and results_Neutral/ folder. To do so :
-- Copy the msmscalc_jobArray.slurm script in each results/ and results_Neutral/ folder
-- From the sim/ folder, run :
+To streamline this process, you could use the script 'msmscalc_jobArray.slurm' (inside the bin/CHG_dataProcessing/ folder).
+
+First, copy the script into the sim/ folder :
 ```
-for folder in $(ls | grep CHG-);do
-	cd ${folder}/results/
-	sbatch --array=0-$(ls *.ms | wc -l)%24 msmscalc_multiCPU.slurm
-	cd ../results_Neutral/
-	sbatch --array=0-$(ls *.ms | wc -l)%24 msmscalc_multiCPU.slurm
-	cd ../../
-done
+# from the sim/ folder
+cp ../bin/CHG_dataProcessing/msmscalc_jobArray.slurm .
 ```
+Then, run the script from the sim/ folder :
+```
+sbatch --array=0-$(ls | grep CHG- | wc -l)%24 msmscalc_jobArray.slurm
+```
+This will run the script and work on the run folders by batches of 24 folders at a time. 
+
 You will end up with one run folder per job, each now containing 5 types of files per simulation (***selection** being either **sweep** or **neutral***) :
 - **xxx_*selection*.trees**
 - **xxx_*selection*_parameters.txt**
@@ -71,8 +78,25 @@ You will end up with one run folder per job, each now containing 5 types of file
 - **xxx_*selection*_sumStats.txt** : contains a table with summary statistics computed within sliding bins along the genome.
 - **xxx_*selection*_positions.txt** : contains a able withe the relative position (between 0 and 1) of each window (--> check what really are those positions).
 
-### Step 3 - Get stats ranges
-First, we need to go through all simulated datasets in order to get the range of variation for each stat. It can be run independently for each dataset and a consensus file created later, to be used for production of .jpg files :
+### Step 3 - Filter simulations
+
+Quite a few things can go wrong at some points of this pipeline. That's why, it is possible you end up with some simulation that are not usable, either because they don't have a neutral or sweep counterpart, of because the summary statistics couldn't be computed (*for a number of reasons*).
+Whatever was the reason, these simulation must be discarded before trying to produce the .jpg and associated files used for the training.
+
+You can easily do this by using the two scripts "moveNoCounterpart.slurm" and "moveNoSumStats.slurm". Copy the scripts from bin/CHG_dataProcessing/ folder into the sim/ folder :
+
+```
+cp moveNoCounterpart.slurm ../sim/
+cp moveNoSumStats.slurm ../sim/
+```
+
+And just run :
+```
+sbatch moveNoCounterpart.slurm
+sbatch moveNoSumStats.slurm
+```
+### Step 4 - Get stats ranges
+Now, we need to go through all simulated datasets in order to get the range of variation for each stat. It can be run independently for each dataset and a consensus file created later, to be used for production of .jpg files :
 
 ```
 # can then be run independently for all simulated datasets: getAllData=0  
@@ -80,8 +104,14 @@ for iteration in $(ls *.ms | cut -d "." -f1 | sed "s/_neutral//g" | sed "s/_swee
 	python3 ../scripts/sim2box_single_YOLOv5.py dpi=300 datapath=$PWD simulation=${iteration} object=posSelection theta=0 phasing=1 plotStats=0 getAllData=0 modelSim=both &
 done
 ```
-To streamline this process, you could use the script 'sim2box_rangeStats.slurm' :
-- From the sim/ folder, run :
+To streamline this process, you could use the script 'sim2box_rangeStats.slurm'.
+Copy the script from bin/CHG_dataProcessing/ folder into the sim/ folder :
+
+```
+cp sim2box_rangeStats.slurm ../sim/
+```
+
+And just run :
 ```
 sbatch --array=0-$(ls . | grep CHG- | wc -l)%24 sim2box_rangeStats.slurm
 ```
@@ -93,30 +123,17 @@ find . -name "range_stats.txt" > list_ranges.txt
 ```
 Then execute _global_ranges.py_:
 ```
-python3 global_ranges.py list_ranges.txt
+python3 ../bin/deepDILS/scripts/global_ranges.py list_ranges.txt > range_stats_consensus.txt
 ```
-You can replace the _range_stats.txt_ files located in different subdirectories by the 'consensus' file produced by _global_ranges.py_ :
+You can then replace the _range_stats.txt_ files located in different subdirectories by the 'consensus' file produced by _global_ranges.py_ :
 ```
 for folder in $(ls | grep CHG-);do
-    cp list_ranges.txt ${folder}/results/range_stats.txt
-    cp list_ranges.txt ${folder}/results_Neutral/range_stats.txt
+    cp range_stats_consensus.txt ${folder}/results/range_stats.txt
+    cp range_stats_consensus.txt ${folder}/results_Neutral/range_stats.txt
 done
 ```
-
-### Step 4 - Filter simulations
-
-Quite a few things can go wrong at some points of this pipeline. That's why, it is possible you end up with some simulation that are not usable, either because they don't have a neutral or sweep counterpart, of because the summary statistics couldn't be computed (*for a number of reasons*).
-Whatever was the reason, these simulation must be discarded before trying to produce the .jpg and associated files used for the training.
-
-You can easily do this by using the two scripts "moveNoCounterpart.slurm" and "moveNoSumStats.slurm". To use them, go the sim/ folder and just run :
-```
-sbatch moveNoCounterpart.slurm
-sbatch moveNoSumStats.slurm
-```
-
-
 ### Step 5 - Produce .jpg for Network Training
-### Step 6 - Produce .jpg for Network Training
+
 Finally, we can produce our .jpg files by running : 
 
 ```
@@ -125,7 +142,14 @@ for iteration in $(ls *.ms | cut -d "." -f1 | sed "s/_neutral//g" | sed "s/_swee
 done
 ```
 To streamline this process, you could use the script 'sim2box_produce.slurm' :
-- From the sim/ folder :
+
+Copy the script from bin/CHG_dataProcessing/ folder into the sim/ folder :
+
+```
+cp sim2box_produce.slurm ../sim/
+```
+
+And just run :
 ```
 sbatch --array=0-$(ls . | grep CHG- | wc -l)%24 sim2box_produce.slurm
 ```
@@ -140,6 +164,45 @@ You'll end up with 10 files for each simulations ((***selection** being either *
 - **xxx_*selection*_globalPic.txt** : YOLOv5 formatted **label** (*position*) of the selective sweep (`class x_center y_center width height`) on the globalPic .jpg file.
 - **xxx_*selection*_rawData.jpg** : each column is a genetic position (*SNP positions from the xxx_selection_postiions.txt file*), each row is an individual. Alleles are binary-coded (*derived allele is denoted with a 1 and the ancestral type with a 0*)
 - **xxx_*selection*_rawData.txt** :YOLOv5 formatted **label** (*position*) of the selective sweep (`class x_center y_center width height`) on the rawData .jpg file.
+
+### Step 7 - Rename simulations
+
+Small step here, to help us easily identify each simulations later on ; we'll just add the name of the run before the name of each of it's files. To do so, you can just use the 'renameSimFiles.slurm' script.
+Copy the script from bin/CHG_dataProcessing/ folder into the sim/ folder :
+
+```
+cp renameSimFiles.slurm ../sim/
+```
+
+And just run :
+```
+sbatch renameSimFiles.slurm
+```
+You'll end up with all the files for each simulations renamed. For example a file named xxx_selection.trees will be renamed CHG-YMMDD-XXXX_xxx_selection.trees.
+
+### Step 8 - Create a Dataset from the simulations
+
+Now, we have to split the simulations into three datasets. To do so, we are using the script "createDataset.bash".
+
+Copy the script from bin/CHG_dataProcessing/ folder into the sim/ folder :
+
+```
+cp createDataset.bash ../sim/
+```
+
+And run, from the sim/ folder :
+```
+trainPart=0.7
+validPart=0.2
+testPart=0.1
+bash createDataset.bash C $trainPart $validPart $testPart $PWD
+
+# On cluster, you can run :
+ sbatch --partition XXX --wrap="bash createDataset.bash C 0.7 0.2 0.1 $PWD"
+```
+You will end up with a DATASET-C-YMMDD folder. The tree architecture of this folder is detailled below. Just not here that this folder can now be used to perform training of the CNN found on this repo : [link to CNN repo].
+
+# ON EN EST LA DANS L'EXEMPLE AVEC DATASET-TEST-1k
 
 dsdsdsdsds
 ds
