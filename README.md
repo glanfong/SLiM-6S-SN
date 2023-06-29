@@ -86,8 +86,8 @@ Whatever was the reason, these simulation must be discarded before trying to pro
 You can easily do this by using the two scripts "moveNoCounterpart.slurm" and "moveNoSumStats.slurm". Copy the scripts from bin/CHG_dataProcessing/ folder into the sim/ folder :
 
 ```
-cp moveNoCounterpart.slurm ../sim/
-cp moveNoSumStats.slurm ../sim/
+cp moveNoCounterpart.slurm ../../sim/
+cp moveNoSumStats.slurm ../../sim/
 ```
 
 And just run :
@@ -108,7 +108,7 @@ To streamline this process, you could use the script 'sim2box_rangeStats.slurm'.
 Copy the script from bin/CHG_dataProcessing/ folder into the sim/ folder :
 
 ```
-cp sim2box_rangeStats.slurm ../sim/
+cp sim2box_rangeStats.slurm ../../sim/
 ```
 
 And just run :
@@ -146,7 +146,7 @@ To streamline this process, you could use the script 'sim2box_produce.slurm' :
 Copy the script from bin/CHG_dataProcessing/ folder into the sim/ folder :
 
 ```
-cp sim2box_produce.slurm ../sim/
+cp sim2box_produce.slurm ../../sim/
 ```
 
 And just run :
@@ -171,7 +171,7 @@ Small step here, to help us easily identify each simulations later on ; we'll ju
 Copy the script from bin/CHG_dataProcessing/ folder into the sim/ folder :
 
 ```
-cp renameSimFiles.slurm ../sim/
+cp renameSimFiles.slurm ../../sim/
 ```
 
 And just run :
@@ -187,7 +187,7 @@ Now, we have to split the simulations into three datasets. To do so, we are usin
 Copy the script from bin/CHG_dataProcessing/ folder into the sim/ folder :
 
 ```
-cp createDataset.bash ../sim/
+cp createDataset.bash ../../sim/
 ```
 
 And run, from the sim/ folder :
