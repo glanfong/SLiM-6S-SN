@@ -93,7 +93,7 @@ cp moveNoSumStats.slurm ../../sim/
 And just run :
 ```
 sbatch moveNoCounterpart.slurm
-sbatch moveNoSumStats.slurm
+sbatch --array=0-$(ls . | grep CHG- | wc -l)%24 moveNoSumStats.slurm
 ```
 ### Step 4 - Get stats ranges
 Now, we need to go through all simulated datasets in order to get the range of variation for each stat. It can be run independently for each dataset and a consensus file created later, to be used for production of .jpg files :
