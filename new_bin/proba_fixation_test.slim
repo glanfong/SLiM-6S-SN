@@ -1,0 +1,336 @@
+// --- FUNCTIONS ---
+
+// -- SET CONSTANTS NOT CONFIGURED VIA COMMAND LINE --
+
+function (void) defineCfgParam(string$ name, lifs value) {
+        if (!exists(name))
+                defineConstant(name, value);
+}
+
+// ----------------------------
+
+// ---- MUTATION FREQUENCY ----
+// - USE IF MULTIPLE POPULATIONS -
+
+function (lifso) getMutFrequency(lifso<Subpopulation> subPop, lifso<MutationType> mutType) {
+        counts = subPop.genomes.countOfMutationsOfType(mutType);
+        return (mean(counts > 0));
+
+        // Example : p1.individualCount = 5 000 ; return = 0.0001
+        // -> p1.individualCount * return => 0.5
+        // mutation is present in 'half an individual' aka
+        // 1 copy of the mutation on ONE of the two chromosomes of a diploid
+}
+
+// ----------------------------
+
+function (void) logReport(string file, float start, string outcome) {
+
+        mutFreq = getMutFrequency(p1, m2);
+        seed = getSeed();
+
+        if (outcome == "LOWF") {
+                if (debug) {
+                        writeFile(debugFile, "-------------- LOWF --------------", append = T);
+                }
+
+                writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tloss_gen\tSLiM_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen\tmig_gen", append = T);
+
+                writeFile(file , sim_id + "\tLOWF\t" + NeA + "\t" + NeB + "\t" + selection_coefficient + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + mut_pos + "\t" + rise_gen + "\t" + loss_gen + "\t" + SLiM_gen + "\t" + samp + "\t" + mutFreq + "\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen + "\t" + mig_gen, append = T);
+        }
+
+        if (outcome == "LOSS") {
+                if (debug) {
+                        writeFile(debugFile, "-------------- LOSS --------------", append = T);
+                }
+
+                writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tloss_gen\tSLiM_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen\tmig_gen", append = T);
+
+                writeFile(file , sim_id + "\tLOSS\t" + NeA + "\t" + NeB + "\t" + selection_coefficient + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + mut_pos + "\t" + rise_gen + "\t" + loss_gen + "\t" + SLiM_gen + "\t" + samp + "\t" + mutFreq + "\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen + "\t" + mig_gen, append = T);
+        }
+
+        if (outcome == "FIXED") {
+                if (debug) {
+                        writeFile(debugFile, "-------------- FIXED --------------", append = T);
+                }
+
+                writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tfix_gen\tSLiM_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen\tmig_gen", append = T);
+
+                writeFile(file , sim_id + "\tFIXED\t" + NeA + "\t" + NeB + "\t" + selection_coefficient + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + mut_pos + "\t" +  rise_gen + "\t" + fix_gen + "\t" + SLiM_gen + "\t" + samp + "\t1\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen + "\t" + mig_gen, append = T);
+        }
+
+        if (outcome == "SEG") {
+                if (debug) {
+                        writeFile(debugFile, "-------------- SEG --------------", append = T);
+                }
+
+                writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tfix_gen\tSLiM_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen\tmig_gen", append = T);
+
+                writeFile(file , sim_id + "\tSEG\t" + NeA + "\t" + NeB + "\t" + selection_coefficient + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + mut_pos + "\t" + rise_gen + "\tNF\t" + SLiM_gen + "\t" + samp + "\t" + mutFreq + "\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen + "\t" + mig_gen, append = T);
+        }
+
+        if (outcome == "NEUTRAL") {
+                if (debug) {
+                        writeFile(debugFile, "-------------- NEUTRAL --------------", append = T);
+                }
+
+                writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tfix_gen\tSLiM_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen\tmig_gen", append = T);
+
+                writeFile(file , sim_id + "\tNEUTRAL\t" + NeA + "\t" + NeB + "\t" + "-" + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + "-" + "\t" + rise_gen + "\t-\t" + SLiM_gen + "\t" + samp + "\t" + "-" + "\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen + "\t" + mig_gen, append = T);
+        }
+
+}
+
+
+// -----------------------------------------------------------
+
+// --- INITIALIZE ---
+
+initialize() {
+
+        // ---- CONFIG PARAMETERS (DEFAULT PARAM USED FOR TESTING) ----
+
+        defineCfgParam("OUTPUT_DIR", "./");
+        defineCfgParam("LOG_DIR", "./");
+        defineCfgParam("debug", F);
+
+        defineCfgParam("sim_id", 974);
+        defineCfgParam("Ne", 5000);
+        defineCfgParam("r", 1e-6);
+        defineCfgParam("mu", 1e-6);
+        defineCfgParam("L", 99999);
+        defineCfgParam("samp", 20);
+        defineCfgParam("chg_r", 1);
+        defineCfgParam("m", 0);
+        defineCfgParam("m_chg", 0);
+
+        defineCfgParam("NeA", 5000);
+        defineCfgParam("NeB", 5000);
+
+        defineCfgParam("end_freq_threshold", 0.1);
+
+        // ----- SELECTION PARAMETERS -----
+
+        defineCfgParam("selection", "sweep");
+
+        // ----- TREE SEQUENCE RECORDING -----
+
+        initializeTreeSeq();
+
+        // ---- LOG REPORT PARAMETERS ----
+
+        defineGlobal("start_clock", clock(type="mono"));
+        defineCfgParam("logDir", LOG_DIR);
+        defineCfgParam("logFile", logDir + "/" + sim_id + "_log.txt");
+
+        // ---- RESULTS PARAMETERS ----
+
+        defineCfgParam("resultsFile", OUTPUT_DIR + "/" + sim_id + "_" + selection + "_parameters.txt");
+
+
+        // ----- ALREADY GENERATED BY generate_sim_parameters.py -----
+        //          Times in generations ago (backward time)
+        //
+        // split_gen : generation of split ~ "entire evolution time"
+        // mig_gen : generation of migration onset
+        // chg_gen : generation of demographic change
+        // SLiM_gen : number of generation run in SLiM
+
+        defineCfgParam("split_gen", rdunif(1, asInteger(round(0.1*Ne)), 10*Ne));
+        defineCfgParam("mig_gen", asInteger(runif(1, 0.2*split_gen, 0.5*split_gen)));
+        defineCfgParam("chg_gen", asInteger(runif(1, 0.2*split_gen, 0.5*split_gen)));
+
+        SLiM_gen_value = 10000;
+
+        while (SLiM_gen_value < 700)
+        {
+            SLiM_gen_value = rdunif(1, 5, asInteger(round(0.2*split_gen)));
+        }
+        defineCfgParam("SLiM_gen", SLiM_gen_value);
+
+        // Time in "forward generations" (SLiM_gen is the number of generations run in SLiM and is the "start" of the SLiM simulations)
+        // rise_gen : generation of arising of beneficial mutation - fixed at 4 for technical issues
+        defineGlobal("rise_gen", 2);
+
+        // ----- CHECK IF MIGRATION AND/OR DEMOGRAPHIC CHANGE HAPPEN DURING SLIM -----
+        // ----- AND CONVERT BACKWARD TIME TO FORWARD SLiM TIMES ACCORDINGLY IF NEEDED -----
+        // Note : Forward SLiM generation of even = SLiM starting generation - Event generation in backward time
+
+        // Variables used to check if migration and/or demographic change should happen during SLiM
+        // Would be better as booleans (?)
+        defineGlobal("SLiM_migration", 0);
+        defineGlobal("SLiM_demographic_change", 0);
+
+        // Set SLiM_migration to 1 if migration should starts during SLiM simulations
+        if (SLiM_gen > mig_gen) {
+                defineCfgParam("SLiM_mig_gen", SLiM_gen - mig_gen);
+                defineGlobal("SLiM_migration",1);
+        }
+
+        // Set SLiM_demographic_change to 1 if demographic change should happens during SLiM simulations
+        if (SLiM_gen > chg_gen) {
+                defineCfgParam("SLiM_chg_gen", SLiM_gen - chg_gen);
+                defineGlobal("SLiM_demographic_change",1);
+        }
+
+        // ----- MUTATION PARAMETERS -----
+        // We want 2.N.s between 10 and 100
+        // Linch paper on mutation fixation : below 0.05.Ne ~ neutral
+        // 2Ns ~ high sweep probability
+        // Note that selection coefficient is fixed and depends of
+        // the population's size at the start of SLiM simulations
+
+        // If demographic change should happen in SLiM
+        // N = Ne
+        if (SLiM_demographic_change == 1) {
+                //      defineGlobal("s", runif(1, 10, 100)/(2*Ne));
+                defineGlobal("selection_coefficient", 50/(2*Ne));
+        }
+
+        // If demographic change already happend
+        // N = NeA
+        if (SLiM_demographic_change == 0) {
+                //      defineGlobal("s", runif(1, 10, 100)/(2*NeA));
+                defineGlobal("selection_coefficient", 50/(2*Ne));
+        }
+
+        // ----- GENOMIC ELEMENTS -----
+
+        initializeMutationRate(0);
+        initializeMutationType("m1", 0.5, "f", 0.0);
+        initializeMutationType("m2", 0.5, "f", selection_coefficient);
+        initializeGenomicElementType("g1", m1, 1.0);
+        initializeGenomicElement(g1, 0, L);
+        initializeRecombinationRate(r);
+
+
+        // ---- CAT SIM PARAMETERS ----
+
+        cat("NeA : " + NeA + "\n");
+        cat("NeB : " + NeB + "\n");
+        cat("Ne : " + Ne + "\n");
+        cat("r : " + r + "\n");
+        cat("mu : " + mu + "\n");
+        cat("L : " + L + "\n");
+        cat("s : " + selection_coefficient + "\n");
+        cat("selection : " + selection + "\n");
+        cat("chg_r : " + chg_r + "\n");
+        cat("samp : " + samp + "\n");
+        cat("migration rate : " + m + "\n");
+        cat("migration rate after chg : " + m_chg + "\n");
+        cat("SLiM_gen : " + SLiM_gen + "\n");
+}
+
+// -----------------------------------------------------------
+
+
+1 early() {
+
+        // ---- ADDING POPULATIONS ----
+
+        sim.addSubpop("p1", NeA);
+        // sim.addSubpop("p2", NeB);
+
+
+        // ---- SAVE RUN IDENTIFIER TO SAVE AND RESTORE ----
+        defineConstant("runID", getSeed());
+
+        // ---- RESCHEDULE EVENTS ----
+        // S1 -  MUTATION |
+        // S2 - CHECK FIXATION/LOSS | S3 - LIMIT
+        // S4 - MIGRATION | S5 - DEMOGRAPHIC CHANGE
+        community.rescheduleScriptBlock(s1, start = rise_gen, end = rise_gen);
+        community.rescheduleScriptBlock(s2, start = rise_gen, end = SLiM_gen);
+        community.rescheduleScriptBlock(s3, start = SLiM_gen, end = SLiM_gen);
+
+}
+
+1 late() {
+        // save state of simulation
+        sim.outputFull(tempdir() + "slim_" + runID + ".txt");
+}
+
+// --- ADD MUTATION --
+
+s1 4 early() {
+
+        if (selection == "sweep") {
+                target = sample(p1.genomes, 1);
+                defineGlobal("mut_pos", rdunif(1, 0, L));
+                target.addNewDrawnMutation(m2, mut_pos);
+
+                cat("MUTATION POSITION : " + mut_pos + "\n");
+        }
+
+}
+
+// --- CHECK MUTATION FREQUENCY ---
+
+s2 4 late() {
+
+        if ((community.tick-rise_gen)%10 == 0)
+        {
+                //cat(community.tick + " " + getMutFrequency(p1, m2) + "\n");
+        }
+
+        if (community.tick == SLiM_gen)
+        {
+                if (sim.countOfMutationsOfType(m2) != 0)
+                {
+                        if (getMutFrequency(p1, m2) <= end_freq_threshold)
+                        {
+                                cat(runID + " : END_Freq = " + getMutFrequency(p1, m2) + " - RESTARTING\n");
+                                // Get loss get
+                                defineGlobal("loss_gen", community.tick);
+
+                                // write logReport file
+                                logReport(logFile, start_clock, "LOSS");
+
+                                // go back to tick checkpoint
+                                sim.readFromPopulationFile(tempdir() + "slim_" + runID + ".txt");
+
+                                // start a newly seeded run
+                                setSeed(rdunif(1, 0, asInteger(2^62) - 1));
+                        }
+                        else
+                        {
+                                cat (runID + " : END_FREQ = " + getMutFrequency(p1, m2) + " > " + end_freq_threshold + "\n");
+                                cat(runID + " : SEGREGATE ABOVE THRESHOLD\n");
+                                sim.simulationFinished();
+
+                        }
+
+                }
+
+        }
+
+        if (sim.countOfMutationsOfType(m2) == 0)
+        {
+                fixed = (sum(sim.substitutions.mutationType == m2) == 1);
+                if (fixed)
+                {
+                        cat(runID + ": FIXED\n");
+                        sim.simulationFinished();
+                }
+                else
+                {
+                        cat(runID + ": LOST – TICK : " + community.tick + "– RESTARTING\n");
+                        writeFile("./proba_test.txt" , runID + "\t1", append = T);
+
+                        // Get loss get
+                        defineGlobal("loss_gen", community.tick);
+
+                        // write logReport file
+                        logReport(logFile, start_clock, "LOSS");
+
+                        // go back to tick checkpoint
+                        sim.readFromPopulationFile(tempdir() + "slim_" + runID + ".txt");
+
+                        // start a newly seeded run
+                        setSeed(rdunif(1, 0, asInteger(2^62) - 1));
+                }
+        }
+
+}
+
+s3 1000 late() {}

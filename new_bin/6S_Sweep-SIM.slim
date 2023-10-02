@@ -1,0 +1,584 @@
+// --- FUNCTIONS ---
+
+
+// -- LOGS --
+
+function (void) logReport(string file, float start, string outcome) {
+
+        mutFreq = getMutFrequency(p1, m2);
+        seed = getSeed();
+
+        if (outcome == "LOWF") {
+                if (debug) {
+                        writeFile(debugFile, "-------------- LOWF --------------", append = T);
+                }
+
+                writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tloss_gen\tSLiM_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen\tmig_gen", append = T);
+
+                writeFile(file , sim_id + "\tLOWF\t" + NeA + "\t" + NeB + "\t" + selection_coefficient + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + mut_pos + "\t" + rise_gen + "\t" + loss_gen + "\t" + SLiM_gen + "\t" + samp + "\t" + mutFreq + "\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen + "\t" + mig_gen, append = T);
+        }
+
+        if (outcome == "LOSS") {
+                if (debug) {
+                        writeFile(debugFile, "-------------- LOSS --------------", append = T);
+                }
+
+                writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tloss_gen\tSLiM_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen\tmig_gen", append = T);
+
+                writeFile(file , sim_id + "\tLOSS\t" + NeA + "\t" + NeB + "\t" + selection_coefficient + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + mut_pos + "\t" + rise_gen + "\t" + loss_gen + "\t" + SLiM_gen + "\t" + samp + "\t" + mutFreq + "\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen + "\t" + mig_gen, append = T);
+        }
+
+        if (outcome == "FIXED") {
+                if (debug) {
+                        writeFile(debugFile, "-------------- FIXED --------------", append = T);
+                }
+
+                writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tfix_gen\tSLiM_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen\tmig_gen", append = T);
+
+                writeFile(file , sim_id + "\tFIXED\t" + NeA + "\t" + NeB + "\t" + selection_coefficient + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + mut_pos + "\t" +  rise_gen + "\t" + fix_gen + "\t" + SLiM_gen + "\t" + samp + "\t1\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen + "\t" + mig_gen, append = T);
+        }
+
+        if (outcome == "SEG") {
+                if (debug) {
+                        writeFile(debugFile, "-------------- SEG --------------", append = T);
+                }
+
+                writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tfix_gen\tSLiM_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen\tmig_gen", append = T);
+
+                writeFile(file , sim_id + "\tSEG\t" + NeA + "\t" + NeB + "\t" + selection_coefficient + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + mut_pos + "\t" + rise_gen + "\tNF\t" + SLiM_gen + "\t" + samp + "\t" + mutFreq + "\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen + "\t" + mig_gen, append = T);
+        }
+
+        if (outcome == "NEUTRAL") {
+                if (debug) {
+                        writeFile(debugFile, "-------------- NEUTRAL --------------", append = T);
+                }
+
+                writeFile(file, "sim_id\toutcome\tNeA\tNeB\ts\tr\tmu\tL\tm\tmut_pos\trise_gen\tfix_gen\tSLiM_gen\tsamp\tmut_freq\trun_CPU_time(s)\tchg_r\tsplit_gen\tchg_gen\tmig_gen", append = T);
+
+                writeFile(file , sim_id + "\tNEUTRAL\t" + NeA + "\t" + NeB + "\t" + "-" + "\t" + r + "\t" + mu + "\t" + L + "\t" + m + "\t" + "0" + "\t" + rise_gen + "\t-\t" + SLiM_gen + "\t" + samp + "\t" + "-" + "\t" + asString(clock(type="mono") - start) + "\t" + chg_r + "\t" + split_gen + "\t" + chg_gen + "\t" + mig_gen, append = T);
+        }
+
+}
+
+// -- SET CONSTANTS NOT CONFIGURED VIA COMMAND LINE --
+
+function (void) defineCfgParam(string$ name, lifs value) {
+        if (!exists(name))
+                defineConstant(name, value);
+}
+
+// -- WRITE CURRENT PARAMETERS TO LOG FILE FOR DEBUGGING --
+
+function (void) debugLog(string file, [string state = ""]) {
+
+        if (debug) {
+
+                if (state == "RESTART")
+                {
+                        writeFile(debugFile, "-------------- RESTART START --------------", append = T);
+                }
+                if (state == "KILL")
+                {
+                        writeFile(debugFile, "\n-------------- SLiM INSTANCE KILLED --------------\n", append = T);
+                }
+                if (state == "CHECKPOINT LOAD")
+                {
+                        writeFile(debugFile, "-------------- RESTART AFTER CHECKPOINT LOAD --------------", append = T);
+                }
+                if (state == "FAIL COUNT +1")
+                {
+                        writeFile(debugFile, "-------------- RESTART AFTER FAIL COUNT +1 --------------", append = T);
+                }
+                if (state == "RANDOM SEED")
+                {
+                        writeFile(debugFile, "-------------- RESTART AFTER NEW RANDOM SEED --------------", append = T);
+                }
+                if (state == "HARD RESET")
+                {
+                        writeFile(debugFile, "-------------- HARD RESTART START --------------", append = T);
+                }
+                if (state == "SPLIT_GEN")
+                {
+                        writeFile(debugFile, "-------------- HARD RESTART AFTER NEW SPLIT_GEN --------------", append = T);
+                }
+                if (state == "END_GEN")
+                {
+                        writeFile(debugFile, "-------------- HARD RESTART AFTER NEW END_GEN --------------", append = T);
+                }
+                if (state == "RISE > END")
+                {
+                        writeFile(debugFile, "-------------- HARD RESTART IF RISE_GEN > END_GEN --------------", append = T);
+                }
+                if (state == "NEW S")
+                {
+                        writeFile(debugFile, "-------------- HARD RESTART AFTER NEW S --------------", append = T);
+                }
+                if (state == "RESET FAIL COUNT")
+                {
+                        writeFile(debugFile, "-------------- HARD RESTART - RESET FAIL_COUNT TO 0 --------------", append = T);
+                }
+                if (state == "RESCHEDULE S1")
+                {
+                        writeFile(debugFile, "-------------- HARD RESTART AFTER RESCHEDULE RISE_GEN --------------", append = T);
+                }
+                if (state == "RESCHEDULE S2")
+                {
+                        writeFile(debugFile, "-------------- HARD RESTART AFTER RESCHEDULE RISE TO END_GEN --------------", append = T);
+                }
+                if (state == "RESCHEDULE S3")
+                {
+                        writeFile(debugFile, "-------------- HARD RESTART AFTER RESCHEDULE END_GEN --------------", append = T);
+                }
+                if (state == "RESTART END")
+                {
+                        writeFile(debugFile, "-------------- RESTART END --------------", append = T);
+                }
+
+
+                mutFreq = getMutFrequency(p1, m2);
+                seed = getSeed();
+
+                writeFile(file, sim_id + "\t" + sim.cycle + "\t" + mutFreq + "\t" + selection_coefficient + "\t" + rise_gen + "\t" + SLiM_gen + "\t" + split_gen + "\t" + fail_count + "\t" + max_fail + "\t" + seed + "\t" + initSeed, append = T);
+
+        }
+}
+
+
+// ---- MUTATION FREQUENCY ----
+// - USE IF MULTIPLE POPULATIONS -
+
+function (lifso) getMutFrequency(lifso<Subpopulation> subPop, lifso<MutationType> mutType) {
+        counts = subPop.genomes.countOfMutationsOfType(mutType);
+        return (mean(counts > 0));
+
+        // Example : p1.individualCount = 5 000 ; return = 0.0001
+        // -> p1.individualCount * return => 0.5
+        // mutation is present in 'half an individual' aka
+        // 1 copy of the mutation on ONE of the two chromosomes of a diploid
+}
+
+// -------------------------------------------------------
+
+// --- INITIALIZE ---
+
+initialize() {
+
+        // ----- CONFIG PARAMETERS (DEFAULT - USE ONLY FOR TEST PURPOSES) -----
+
+        defineCfgParam("OUTPUT_DIR", "./");
+        defineCfgParam("LOG_DIR", "./");
+
+        defineCfgParam("sim_id", 974);
+        defineCfgParam("Ne", 5000);
+        defineCfgParam("r", 1e-6);
+        defineCfgParam("mu", 1e-6);
+        defineCfgParam("L", 99999);
+        defineCfgParam("samp", 20);
+        defineCfgParam("chg_r", 1);
+        defineCfgParam("m", 0);
+        defineCfgParam("m_chg", 0);
+
+        defineCfgParam("NeA", 5000);
+        defineCfgParam("NeB", 5000);
+
+        defineCfgParam("end_freq_threshold", 0.1);
+
+        // ---- SELECTION PARAMETER ----
+
+        defineCfgParam("selection", "sweep");
+
+        // ---- TREE-SEQUENCE RECORDING -----
+
+        initializeTreeSeq();
+
+        // ---- DEBUG PARAMTERS ----
+
+        defineCfgParam("debugFile", "debug.txt");
+        defineCfgParam("initSeed", getSeed());
+        defineCfgParam("debug", T);
+
+        // ---- LOG REPORT PARAMETERS ----
+
+        defineGlobal("start_clock", clock(type="mono"));
+        defineCfgParam("logFile", LOG_DIR + "/" + sim_id + "_" + selection + "_log.txt");
+
+        // ---- RESULTS PARAMETERS ----
+        defineCfgParam("resultsFile", OUTPUT_DIR + "/" + sim_id + "_" + selection + "_parameters.txt");
+
+
+        // ---- HARD LIMIT TO SLIM KILL ----
+
+        defineCfgParam("runLimit", 1000); // Number of runs before killing this SLiM instance
+        defineGlobal("runCount", 1); // Count number of runs
+
+
+        // ----- ALREADY GENERATED BY generate_sim_parameters.py -----
+        //          Times in generations ago (backward time)
+        //
+        // split_gen : generation of split ~ "entire evolution time"
+        // mig_gen : generation of migration onset
+        // chg_gen : generation of demographic change
+        // SLiM_gen : number of generation run in SLiM
+
+        defineCfgParam("split_gen", rdunif(1, asInteger(round(0.1*Ne)), 10*Ne));
+        defineCfgParam("mig_gen", asInteger(runif(1, 0.2*split_gen, 0.5*split_gen)));
+        defineCfgParam("chg_gen", asInteger(runif(1, 0.2*split_gen, 0.5*split_gen)));
+        defineCfgParam("SLiM_gen", asInteger(runif(1, 0.2*split_gen, 0.5*split_gen)));
+
+        // Time in "forward generations" (SLiM_gen is the number of generations run in SLiM and is the "start" of the SLiM simulations)
+        // rise_gen : generation of arising of beneficial mutation - fixed at 4 for technical issues
+        defineGlobal("rise_gen", 2);
+
+        // ----- CHECK IF MIGRATION AND/OR DEMOGRAPHIC CHANGE HAPPEN DURING SLIM -----
+        // ----- AND CONVERT BACKWARD TIME TO FORWARD SLiM TIMES ACCORDINGLY IF NEEDED -----
+        // Note : Forward SLiM generation of even = SLiM starting generation - Event generation in backward time
+
+        // Variables used to check if migration and/or demographic change should happen during SLiM
+        // Would be better as booleans (?)
+        defineGlobal("SLiM_migration", 0);
+        defineGlobal("SLiM_demographic_change", 0);
+
+        // Set SLiM_migration to 1 if migration should starts during SLiM simulations
+        if (SLiM_gen > mig_gen) {
+                defineCfgParam("SLiM_mig_gen", SLiM_gen - mig_gen);
+                defineGlobal("SLiM_migration",1);
+        }
+
+        // Set SLiM_demographic_change to 1 if demographic change should happens during SLiM simulations
+        if (SLiM_gen > chg_gen) {
+                defineCfgParam("SLiM_chg_gen", SLiM_gen - chg_gen);
+                defineGlobal("SLiM_demographic_change",1);
+        }
+
+        // ----- MUTATION PARAMETERS -----
+        // We want 2.N.s between 10 and 100
+        // Linch paper on mutation fixation : below 0.05.Ne ~ neutral
+        // 2Ns ~ high sweep probability
+        // Note that selection coefficient is fixed and depends of
+        // the population's size at the start of SLiM simulations
+
+        // Redefine selection_coefficient as a float
+
+        if (selection_coefficient_input) {
+                defineConstant("selection_coefficient", asFloat(selection_coefficient_input));
+        }
+
+        // ----- GENOMIC ELEMENTS -----
+
+        initializeMutationRate(0);
+        initializeMutationType("m1", 0.5, "f", 0.0);
+        initializeMutationType("m2", 0.5, "f", selection_coefficient);
+        initializeGenomicElementType("g1", m1, 1.0);
+        initializeGenomicElement(g1, 0, L);
+        initializeRecombinationRate(r);
+
+        // ----- CAT SIM PARAMETERS ----
+
+        cat("NeA : " + NeA + "\n");
+        cat("NeB : " + NeB + "\n");
+        cat("Ne : " + Ne + "\n");
+        cat("r : " + r + "\n");
+        cat("mu : " + mu + "\n");
+        cat("L : " + L + "\n");
+        cat("s : " + selection_coefficient + "\n");
+        cat("selection : " + selection + "\n");
+        cat("chg_r : " + chg_r + "\n");
+        cat("samp : " + samp + "\n");
+        cat("migration rate : " + m + "\n");
+        cat("migration rate after chg : " + m_chg + "\n");
+        cat("SLiM_gen : " + SLiM_gen + "\n");
+
+}
+
+// -------------------------------------------------------
+
+1 early() {
+
+        // --- ADDING POPULATIONS ---
+
+        // ---- DEMOGRAPHIC CHANGE ----
+
+        // If demographic change should happen in SLiM
+        // add p1 with size = Ne (ancestral)
+        if (SLiM_demographic_change == 1) {
+                sim.addSubpop("p1", Ne);
+        }
+
+        // Else, demographic change has already happened
+        // add p1 with size = NeA (Ne * chg_r)
+        else {
+                sim.addSubpop("p1", NeA);
+        }
+
+        // ---- MIGRATION ----
+
+        // If migration rate or migration rate after change > 0 -> there is migration in the simulation
+        // add p2 with size = NeB (Ne ancestral)
+
+        if (m > 0 | m_chg > 0) {
+                sim.addSubpop("p2", NeB);
+
+                // CAS D
+                // Migration before SLiM + Demographic change before SLiM
+                // Set migration rate to m_chg immediately
+
+                if (SLiM_migration == 0 & SLiM_demographic_change == 0) {
+                        p1.setMigrationRates(p2, m_chg);
+                }
+
+                // CAS A
+                // Migration before SLiM + Demographic change during SLiM
+                // Set migration rate to m immediately and to m_chg after demographic change
+
+                if (SLiM_migration == 0 & SLiM_demographic_change == 1) {
+                        p1.setMigrationRates(p2, m);
+                        // REMEMBER TO CHANG MIGRATION RATE TO m_chg AFTER DEMOGRAPHIC EVENT
+                }
+
+                // CAS E
+                // Migration during SLiM + Demographic change before SLiM
+                // Set migration rate to m_chg later
+
+                if (SLiM_migration == 1 & SLiM_demographic_change == 0) {
+                        // REMEMBER TO SET MIGRATION TO m_chg WHEN MIGRATION ONSET
+                }
+
+                // CAS B et CAS C
+                // Migration during SLiM + Demographic change during SLiM
+                // Check order of events and do things accordingly !
+
+                if (SLiM_migration == 1 & SLiM_demographic_change == 1) {
+
+                        // CAS C
+                        // Migration onset after demographic change
+                        if (SLiM_mig_gen > SLiM_chg_gen){
+                                // REMEMBER TO SET MIGRATION TO m_chg WHEN MIGRATION ONSET
+                        }
+
+                        // CAS B
+                        // Migration onset BEFORE demographic change
+                        if (SLiM_chg_gen > SLiM_mig_gen) {
+                                // REMEMBER TO SET MIGRATION TO m WHEN MIGRATION ONSET
+                                // THEN TO CHANGE IT TO m_chg AFTER DEMOGRAPHIC EVENT
+                        }
+                }
+        }
+
+        // ---- SAVE RUN IDENTIFIER TO SAVE AND RESTORE ----
+        defineConstant("runID", getSeed());
+
+        // ---- RESCHEDULE EVENTS ----
+        // S1 -  MUTATION |
+        // S2 - CHECK FIXATION/LOSS | S3 - LIMIT
+        // S4 - MIGRATION | S5 - DEMOGRAPHIC CHANGE
+        community.rescheduleScriptBlock(s1, start = rise_gen, end = rise_gen);
+        community.rescheduleScriptBlock(s2, start = rise_gen, end = SLiM_gen);
+        community.rescheduleScriptBlock(s3, start = SLiM_gen, end = SLiM_gen);
+
+        if (exists("SLiM_mig_gen")){
+                community.rescheduleScriptBlock(s4, start = SLiM_mig_gen, end = SLiM_mig_gen);
+        }
+
+        if (exists("SLiM_chg_gen")){
+                community.rescheduleScriptBlock(s5, start = SLiM_chg_gen, end = SLiM_chg_gen);
+        }
+
+}
+
+// --- CHECKPOINT --- //
+
+1 late() {
+        cat("CHECKPOINT\n");
+        sim.outputFull(tempdir() + "slim_" + runID + "_" + selection + ".txt");
+}
+
+s4 4 early() {
+
+        // --- SET MIGRATION RATES FROM p2 INTO p1 ---
+
+        if (m > 0 | m_chg > 0) {
+
+                // Migration during SLiM + Demographic change before SLiM
+                if (SLiM_migration == 1 & SLiM_demographic_change == 0) {
+                        p1.setMigrationRates(p2, m_chg);
+                }
+
+                // Migration during SLiM + Demographic change during SLiM
+                // Check order of events and do things accordingly !
+                if (SLiM_migration == 1 & SLiM_demographic_change == 1) {
+
+                        // Migration onset after demographic change
+                        if (SLiM_mig_gen > SLiM_chg_gen){
+                                p1.setMigrationRates(p2, m_chg);
+                        }
+                        // Migration onset before demographic change
+                        if (SLiM_chg_gen > SLiM_mig_gen) {
+                                p1.setMigrationRates(p2, m);
+                                // THEN TO CHANGE IT TO m_chg AFTER DEMOGRAPHIC EVENT
+                        }
+                }
+        }
+}
+
+s5 4 early() {
+
+        // --- DEMOGRAPHIC CHANGE ---
+
+        // If demoographic change has not already happen it happens now : p1 size -> NeA
+        if (SLiM_demographic_change == 1) {
+                p1.setSubpopulationSize(NeA);
+        }
+
+        if (m > 0 | m_chg > 0) {
+                // Migration before SLiM + Demographic change during SLiM
+                if (SLiM_migration == 0 & SLiM_demographic_change == 1) {
+                        p1.setMigrationRates(p2, m_chg);
+                }
+
+                // Migration during SLiM + Demographic change during SLiM
+                // Check order of events and do things accordingly !
+                if (SLiM_migration == 1 & SLiM_demographic_change == 1) {
+
+                        // Migration onset before demographic change and is changed to m_chg after demographic change
+                        if (SLiM_chg_gen > SLiM_mig_gen) {
+                                p1.setMigrationRates(p2, m_chg);
+                        }
+                }
+
+        }
+
+}
+
+// --- ADD MUTATION --
+
+s1 4 late() {
+
+        if (selection == "sweep") {
+                target = sample(p1.genomes, 1);
+                defineGlobal("mut_pos", rdunif(1, 0, L));
+                target.addNewDrawnMutation(m2, mut_pos);
+
+                cat("MUTATION POSITION : " + mut_pos + "\n");
+        }
+
+}
+
+// --- CHECK MUTATION FIXATION ---
+
+s2 4 late() {
+
+        if (selection == "sweep"){
+
+                if (exists("fix_gen")) {}
+
+                else {
+
+                        if (sim.countOfMutationsOfType(m2) == 0)
+                        {
+                                fixed = F;
+
+                                if (sum(sim.substitutions.mutationType == m2) == 1 | getMutFrequency(p1, m2) == 1.0)
+                                {
+                                        fixed = T;
+                                }
+
+                                if (fixed == T)
+                                {
+                                        cat(runID + ": GEN° " + sim.cycle + " - MUTATION FIXED\n");
+
+                                        // Get fixation generation
+                                        defineConstant("fix_gen", sim.cycle);
+                                }
+
+                                else
+                                {
+                                        cat(runID + ": GEN° " + sim.cycle + " - MUTATION LOST\n");
+
+                                        // Get loss generation
+                                        defineGlobal("loss_gen", sim.cycle);
+
+                                        // Write logReport file
+                                        logReport(logFile, start_clock, "LOSS");
+
+                                        // go back to checkpoint
+                                        sim.readFromPopulationFile(tempdir() + "slim_" + runID + "_" + selection + ".txt");
+
+                                        // start a newly seeded run
+                                        setSeed(rdunif(1, 0, asInteger(2^62) - 1));
+                                }
+                        }
+                }
+
+                if (community.tick == SLiM_gen)
+                {
+                        // ---- OUTPUT IF FIXED ----
+                        if (exists("fix_gen")) {
+
+                                cat(runID + " : SUCCESS MUTATION FIXED -\n");
+
+                                // ----- WRITE TREE & PARAMETERS FILE -----
+                                sim.treeSeqOutput(OUTPUT_DIR + "/" + sim_id + "_" + selection + ".trees");
+                                logReport(resultsFile, start_clock, "FIXED");
+
+                                // ----- END WORDS -----
+                                cat("SIM FINISHED WITH MUT FIXED");
+                                sim.simulationFinished();
+
+                        }
+
+                        else
+                        {
+                                if (getMutFrequency(p1, m2) <= end_freq_threshold)
+                                {
+                                        cat(runID + ": GEN° " + sim.cycle + " - MUTATION LOWF\n");
+
+                                        // Get loss generation
+                                        defineGlobal("loss_gen", sim.cycle);
+
+                                        // Write logReport file
+                                        logReport(logFile, start_clock, "LOSS");
+
+                                        // go back to checkpoint
+                                        sim.readFromPopulationFile(tempdir() + "slim_" + runID + "_" + selection + ".txt");
+
+                                        // start a newly seeded run
+                                        setSeed(rdunif(1, 0, asInteger(2^62) - 1));
+                                }
+
+                                else
+                                {
+                                        cat(runID + " : SUCCESS MUTATION FREQ = " + getMutFrequency(p1, m2) + "> 0.1 -\n");
+
+                                        // ------ WRITE TREE & PARAMETERS FILE ------
+                                        sim.treeSeqOutput(OUTPUT_DIR + "/" + sim_id + "_" + selection + ".trees");
+                                        logReport(resultsFile, start_clock, "SEG");
+
+                                        // ------ END WORDS ------
+                                        cat("SIM FINISHED WITH MUT FREQ = " + getMutFrequency(p1, m2));
+                                        sim.simulationFinished();
+                                }
+                        }
+                }
+
+        }
+
+        else
+        {
+                // ---- OUTPUT FOR NEUTRAL SIMULATION ----
+
+                cat(runID + " : SUCCESS NEUTRAL SIMULATION -\n");
+
+                // ----- WRITE TREE & PARAMETERS FILE -----
+                sim.treeSeqOutput(OUTPUT_DIR + "/" + sim_id + "_" + selection + ".trees");
+                logReport(resultsFile, start_clock, "NEUTRAL");
+
+                // ----- END WORDS -----
+                cat("SIM NEUTRAL FINISHED");
+                sim.simulationFinished();
+
+        }
+}
+
+// --- SIMULATION HARD TIME LIMIT ---
+
+s3 200000 late() {}

@@ -1,0 +1,207 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+
+Load parameter summary file
+```{r}
+priorParameters <- as_tibble(read.table("../20921_allParam.txt", h=T))
+priorParameters
+```
+
+
+Explore parameters
+```{r}
+
+priorParameters <- priorParameters %>% mutate(scenario = case_when(
+    grepl("BTL", id) ~ "BTL",
+    grepl("CST", id) ~ "CST",
+    grepl("EXP", id) ~ "EXP",
+    grepl("MIG", id) ~ "MIG",
+    grepl("MGX", id) ~ "MGX",
+    grepl("MGB", id) ~ "MGB",
+    TRUE ~ "Other"  # Add a default result for unmatched conditions
+))
+
+priorParameters
+
+
+```
+
+
+```{r}
+priorParameters %>% select(id, Ne_anc, NeA, chg_r, split_gen, chg_gen, mig_gen, SLiM_gen, m, m_chg, selection_coefficient, scenario)
+```
+
+
+```{r}
+
+# Define a vector of parameter names
+parameter_names <- c("Ne_anc", "NeA", "chg_r", "split_gen", "chg_gen", "mig_gen", "SLiM_gen", "m", "m_chg", "selection_coefficient")
+
+# Loop through each parameter and create a separate plot
+for (param in parameter_names) {
+  # Create a ggplot object for the current parameter
+  p <- ggplot(priorParameters, aes(x = scenario, y = !!sym(param))) +
+    geom_boxplot() +
+    labs(x = "Scenario", y = param) +
+    ggtitle(paste("Boxplot of", param, "by Scenario"))
+  
+  # Print the plot
+  print(p)
+}
+```
+
+```{r}
+
+# Create a list of numerical columns to plot
+numerical_columns <- c("Ne_anc", "NeA", "chg_r", "split_gen", "chg_gen", "mig_gen", "SLiM_gen", "m", "m_chg", "selection_coefficient")
+
+# Iterate through numerical columns
+for (col in numerical_columns) {
+  # Create a density plot for the current column by scenario
+  p <- ggplot(priorParameters, aes(x = .data[[col]], fill = scenario)) +
+    geom_density(alpha = 0.5) +  # Add density curves
+    labs(title = col, x = col, y = "Density") +
+    theme_minimal() +
+    theme(legend.position = "top")
+  
+  # Display the plot
+  print(p)
+}
+```
+
+```{r}
+# Create a list of numerical columns to plot
+numerical_columns <- c("Ne_anc", "NeA", "chg_r", "split_gen", "chg_gen", "mig_gen", "SLiM_gen", "m", "m_chg", "selection_coefficient")
+
+# Group scenarios as specified
+priorParameters_grouped_scenario <- priorParameters %>%
+  mutate(scenario_group = case_when(
+    scenario %in% c("BTL", "EXP", "CST") ~ "Group1",
+    scenario %in% c("MIG", "MGB", "MGX") ~ "Group2"
+  ))
+
+# Iterate through numerical columns
+for (col in numerical_columns) {
+  # Create a density plot for the current column by scenario group
+  p <- ggplot(priorParameters_grouped_scenario, aes(x = .data[[col]], fill = scenario_group)) +
+    geom_density(alpha = 0.5) +  # Add density curves
+    labs(title = col, x = col, y = "Density") +
+    theme_minimal() +
+    theme(legend.position = "top")
+  
+  # Display the plot
+  print(p)
+}
+```
+
+```{r}
+# Create a list of numerical columns to plot
+numerical_columns <- c("Ne_anc", "NeA", "chg_r", "split_gen", "chg_gen", "mig_gen", "SLiM_gen", "m", "m_chg", "selection_coefficient")
+
+# Group scenarios as specified
+priorParameters <- priorParameters_grouped_scenario %>%
+  mutate(scenario_group = case_when(
+    scenario %in% c("BTL", "EXP", "CST") ~ "Group1",
+    scenario %in% c("MGB", "MGX", "MIG") ~ "Group2"
+  ))
+
+# Iterate through numerical columns
+for (col in numerical_columns) {
+  # Create a density plot for Group1 (BTL, EXP, CST)
+  p1 <- ggplot(filter(priorParameters_grouped_scenario, scenario_group == "Group1"), aes(x = .data[[col]], fill = scenario)) +
+    geom_density(alpha = 0.5) +  # Add density curves
+    labs(title = paste("Group1 -", col), x = col, y = "Density") +
+    theme_minimal() +
+    theme(legend.position = "top")
+  
+  # Create a density plot for Group2 (MIG, MGB, MGX)
+  p2 <- ggplot(filter(priorParameters_grouped_scenario, scenario_group == "Group2"), aes(x = .data[[col]], fill = scenario)) +
+    geom_density(alpha = 0.5) +  # Add density curves
+    labs(title = paste("Group2 -", col), x = col, y = "Density") +
+    theme_minimal() +
+    theme(legend.position = "top")
+  
+  # Display the plots
+  print(p1)
+  print(p2)
+}
+```
+
+
+Statistical tests
+
+```{r}
+
+# Load libraries
+
+#install.packages("multcomp")
+#install.packages("emmeans")
+
+library(ggplot2)
+library(dplyr)
+library(broom)
+library(car)
+library(multcomp)
+library(emmeans)
+```
+
+```{r}
+parameter_names <- c("Ne_anc", "NeA", "chg_r", "split_gen", "chg_gen", "mig_gen", "SLiM_gen", "m", "m_chg", "selection_coefficient")
+
+# Create an empty list to store ANOVA results
+anova_results <- list()
+
+# Loop through each parameter and perform ANOVA
+for (param in parameter_names) {
+  anova_model <- aov(priorParameters[[param]] ~ priorParameters$scenario)
+  anova_results[[param]] <- summary(anova_model)
+}
+```
+
+```{r}
+anova_results
+```
+
+
+
+```{r}
+# Create an empty list to store post hoc test results
+posthoc_results <- list()
+
+# Loop through each parameter and perform post hoc tests
+for (param in parameter_names) {
+  anova_model <- aov(priorParameters[[param]] ~ priorParameters$scenario)
+  posthoc_test <- TukeyHSD(anova_model)
+  posthoc_results[[param]] <- posthoc_test
+}
+
+```
+
+
+```{r}
+posthoc_results
+```
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

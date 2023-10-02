@@ -1,0 +1,334 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(tidyr)
+```
+
+Load resultsParam files of simulations with recapitation issues :
+
+```{r}
+# ID of simulations with recapitation issues
+
+BTL_id = c(13, 27, 29, 31, 32, 33, 38, 39, 56, 72, 76, 90, 93, 100)
+CST_id = c(6, 11, 20, 31, 37, 51, 73, 81, 85, 100)
+EXP_id = c(2, 6, 15, 17, 21, 24, 33, 38, 45, 49, 54, 56, 60, 67, 74, 77, 84, 94, 97, 100)
+MGB_id = c(5, 15, 16, 21, 23, 26, 30, 33, 45, 51, 54, 56, 60, 82, 90, 97, 99, 100)
+MGX_id = c(5, 12, 15, 20, 26, 31, 33, 40, 44, 46, 49, 53, 63, 64, 68, 76, 79, 86, 88, 90, 99, 100)
+MIG_id = c(9, 13, 15, 18, 21, 24, 28, 33, 37, 40, 44, 46, 64, 73, 76, 97, 100)
+```
+
+
+```{r}
+# Create an empty list to store the loaded data frames
+data_list <- list()
+
+# List of BTL_ids
+BTL_id <- c(13, 27, 29, 31, 32, 33, 38, 39, 56, 72, 76, 90, 93, 100)
+
+# Directory path where your files are located
+directory_path <- "../../simulations/100_TEST_SIM/BTL-20921-NdnZ/"
+
+# Iterate through each BTL_id
+for (id in BTL_id) {
+  # Define the file names for sweep and neutral parameters
+  sweep_file <- paste0(directory_path, "BTL-20921-NdnZ-", sprintf("%04d", id), "_sweep_parameters.txt")
+  neutral_file <- paste0(directory_path, "BTL-20921-NdnZ-", sprintf("%04d", id), "_neutral_parameters.txt")
+  
+  # Load sweep parameters
+  sweep_data <- read_delim(sweep_file, delim = "\t")
+  sweep_data <- sweep_data %>%
+    mutate(Type = "Sweep")  # Add a column indicating sweep
+  
+  # Load neutral parameters
+  neutral_data <- read_delim(neutral_file, delim = "\t")
+  neutral_data <- neutral_data %>%
+    mutate(Type = "Neutral")  # Add a column indicating neutral
+  
+  # Ensure the "s" column is of numeric data type
+  sweep_data$s <- as.numeric(sweep_data$s)
+  neutral_data$s <- as.numeric(neutral_data$s)
+  
+  # Ensure the "fix_gen" column is of double data type
+  sweep_data$fix_gen <- as.integer(sweep_data$fix_gen)
+  neutral_data$fix_gen <- as.integer(neutral_data$fix_gen)
+  
+  # Ensure the "mut_freq" column is of double data type
+  sweep_data$mut_freq <- as.double(sweep_data$mut_freq)
+  neutral_data$mut_freq <- as.double(neutral_data$mut_freq)
+  
+  # Combine sweep and neutral data
+  combined_data <- bind_rows(sweep_data, neutral_data)
+  
+  # Add the combined data to the list
+  data_list[[id]] <- combined_data
+}
+
+# Combine all data frames into a single tibble
+combined_tibble <- bind_rows(data_list, .id = "FileID")
+
+# Rename the FileID column to BTL_id
+combined_tibble <- combined_tibble %>%
+  rename(BTL_id = FileID)
+
+# Print the resulting tibble
+print(combined_tibble)
+
+```
+
+```{r}
+
+# Define lists of IDs for each scenario
+BTL_id <- c(13, 27, 29, 31, 32, 33, 38, 39, 56, 72, 76, 90, 93, 100)
+CST_id <- c(6, 11, 20, 31, 37, 51, 73, 81, 85, 100)
+EXP_id <- c(2, 6, 15, 17, 21, 24, 33, 38, 45, 49, 54, 56, 60, 67, 74, 77, 84, 94, 97, 100)
+MGB_id <- c(5, 15, 16, 21, 23, 26, 30, 33, 45, 51, 54, 56, 60, 82, 90, 97, 99, 100)
+MGX_id <- c(5, 12, 15, 20, 26, 31, 33, 40, 44, 46, 49, 53, 63, 64, 68, 76, 79, 86, 88, 90, 99, 100)
+MIG_id <- c(9, 13, 15, 18, 21, 24, 28, 33, 37, 40, 44, 46, 64, 73, 76, 97, 100)
+
+# Define directory paths for each scenario
+scenario_paths <- list(
+  BTL = "../../simulations/100_TEST_SIM/BTL-20921-NdnZ/",
+  CST = "../../simulations/100_TEST_SIM/CST-20921-k6tT/",
+  EXP = "../../simulations/100_TEST_SIM/EXP-20921-sJpP/",
+  MGB = "../../simulations/100_TEST_SIM/MGB-20921-iO4u/",
+  MGX = "../../simulations/100_TEST_SIM/MGX-20921-I5Mv/",
+  MIG = "../../simulations/100_TEST_SIM/MIG-20921-rI3C/"
+)
+
+# Create an empty list to store the loaded data frames
+scenario_data_list <- list()
+
+# Iterate through each scenario
+for (scenario_name in names(scenario_paths)) {
+  # Define the directory path for the current scenario
+  directory_path <- scenario_paths[[scenario_name]]
+  
+  # Define the list of IDs based on the scenario
+  ids <- switch(
+    scenario_name,
+    BTL = BTL_id,
+    CST = CST_id,
+    EXP = EXP_id,
+    MGB = MGB_id,
+    MGX = MGX_id,
+    MIG = MIG_id
+  )
+  
+  # Create an empty list to store the loaded data frames for this scenario
+  data_list <- list()
+  
+  # Iterate through each ID in the scenario
+  for (id in ids) {
+    # Define the file names for sweep and neutral parameters
+    sweep_file <- paste0(
+      directory_path,
+      switch(
+        scenario_name,
+        BTL = "BTL-20921-NdnZ-",
+        CST = "CST-20921-k6tT-",
+        EXP = "EXP-20921-sJpP-",
+        MGB = "MGB-20921-iO4u-",
+        MGX = "MGX-20921-I5Mv-",
+        MIG = "MIG-20921-rI3C-"
+      ),
+      sprintf("%04d", id),
+      "_sweep_parameters.txt"
+    )
+    neutral_file <- paste0(
+      directory_path,
+      switch(
+        scenario_name,
+        BTL = "BTL-20921-NdnZ-",
+        CST = "CST-20921-k6tT-",
+        EXP = "EXP-20921-sJpP-",
+        MGB = "MGB-20921-iO4u-",
+        MGX = "MGX-20921-I5Mv-",
+        MIG = "MIG-20921-rI3C-"
+      ),
+      sprintf("%04d", id),
+      "_neutral_parameters.txt"
+    )
+    
+    # Load sweep parameters
+    sweep_data <- read_delim(sweep_file, delim = "\t")
+    sweep_data <- sweep_data %>%
+      mutate(Type = "Sweep")  # Add a column indicating sweep
+    
+    # Load neutral parameters
+    neutral_data <- read_delim(neutral_file, delim = "\t")
+    neutral_data <- neutral_data %>%
+      mutate(Type = "Neutral")  # Add a column indicating neutral
+    
+    # Ensure the "s" column is of numeric data type
+    sweep_data$s <- as.numeric(sweep_data$s)
+    neutral_data$s <- as.numeric(neutral_data$s)
+    
+    # Ensure the "fix_gen" column is of double data type
+    sweep_data$fix_gen <- as.integer(sweep_data$fix_gen)
+    neutral_data$fix_gen <- as.integer(neutral_data$fix_gen)
+    
+    # Ensure the "mut_freq" column is of double data type
+    sweep_data$mut_freq <- as.double(sweep_data$mut_freq)
+    neutral_data$mut_freq <- as.double(neutral_data$mut_freq)
+    
+    # Combine sweep and neutral data
+    combined_data <- bind_rows(sweep_data, neutral_data)
+    
+    # Add the combined data to the list
+    data_list[[id]] <- combined_data
+  }
+  
+  # Combine all data frames for this scenario into a single tibble
+  scenario_tibble <- bind_rows(data_list, .id = "BTL_id")
+  
+  # Rename the BTL_id column to the corresponding scenario
+  scenario_tibble <- scenario_tibble %>%
+    rename(scenario = BTL_id)
+  
+  # Add the scenario tibble to the list
+  scenario_data_list[[scenario_name]] <- scenario_tibble
+}
+
+# Combine all scenario tibbles into a single final tibble
+final_tibble <- bind_rows(scenario_data_list, .id = "Scenario")
+
+# Print the resulting final tibble
+print(final_tibble)
+```
+
+```{r}
+
+library(ggplot2)
+library(gridExtra)
+# Define a function to create boxplots for a parameter
+create_boxplot <- function(data, parameter) {
+  ggplot(data, aes(x = scenario, y = !!sym(parameter))) +
+    geom_boxplot() +
+    labs(
+      title = paste("Boxplot of", parameter),
+      x = "Scenario",
+      y = parameter
+    ) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+
+# List of parameters to create boxplots for
+parameters <- c(
+  "NeA",
+  "NeB",
+  "s",
+  "r",
+  "mu",
+  "L",
+  "m",
+  "mut_pos",
+  "rise_gen",
+  "fix_gen",
+  "SLiM_gen",
+  "samp",
+  "mut_freq",
+  "run_CPU_time(s)",
+  "chg_r",
+  "split_gen",
+  "chg_gen",
+  "mig_gen"
+)
+
+# Iterate through each parameter and create boxplots for each scenario
+for (param in parameters) {
+  # Create a list to store boxplots for each scenario
+  boxplots <- list()
+  
+  # Iterate through each scenario
+  for (scenario_name in unique(final_tibble$Scenario)) {
+    # Filter data for the current scenario
+    scenario_data <- final_tibble %>%
+      filter(Scenario == scenario_name)
+    
+    # Create a boxplot for the parameter in the current scenario
+    boxplot <- create_boxplot(scenario_data, param)
+    
+    # Add the boxplot to the list
+    boxplots[[scenario_name]] <- boxplot
+  }
+  
+  # Save or display the boxplots for the parameter
+  # You can customize the file names or display options as needed
+  #pdf(paste(param, "_boxplots.pdf", sep = ""), width = 10, height = 6)
+  #do.call(grid.arrange, boxplots)
+  #dev.off()
+  
+  do.call(grid.arrange, boxplots)
+}
+```
+
+```{r}
+
+parameters <- c(
+  "NeA",
+  "NeB",
+  "s",
+  "r",
+  "mu",
+  "L",
+  "m",
+  "mut_pos",
+  "rise_gen",
+  "fix_gen",
+  "SLiM_gen",
+  "samp",
+  "mut_freq",
+  "run_CPU_time(s)",
+  "chg_r",
+  "split_gen",
+  "chg_gen",
+  "mig_gen"
+)
+
+for (param in parameters) {
+  cat(param)
+  summary_stats <- final_tibble %>%
+  group_by(Scenario) %>%
+  summarize(
+    Mean = mean(param),
+    Median = median(param),
+    Min = min(param),
+    Max = max(param),
+    SD = sd(param)
+  )
+  # Print or view the summary statistics
+print(summary_stats)
+}
+```
+
+
+```{r}
+param = "NeA"
+final_tibble %>%
+  group_by(Scenario) %>% summarise(meanNeA = mean(param))
+
+
+```
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

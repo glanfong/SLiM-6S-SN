@@ -1,0 +1,760 @@
+---
+title: "Checking SLiM fixation probability of beneficial mutation - R Notebook"
+output: html_notebook
+---
+
+**Import libraries**
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+**Loading data**
+
+3 types of files contains information about the simulations :
+
+- ../../parameters/SIM-ID/*_prior_parameters.txt
+- ../../simulations/SIM-ID/*_sweep_parameters.txt
+- ../../logs/SIM-ID/*_log.txt : contain one line for each failed SLiMulation.
+
+**First Example**
+
+First, as and example, we'll have a look at the first file of the first log directory :
+
+**Setup Path to Log files**
+```{r}
+# Set path to log folders
+logPath = "../../logs/TESTING_FIX_PROBA/"
+
+# Works on the first directory
+logDir = list.dirs(logPath)[-1][1]
+
+# Get list of all log files inside this specific folder
+logFiles = list.files(logDir)
+```
+
+**Print List of all LogFiles of the first directory**
+```{r}
+print(logFiles)
+```
+**Load first file as a tibble and print it**
+
+- *Note 1* : columns are converted into correct type.
+- *Note* : columns are filtered to remove duplicate "header".
+```{r}
+logFile = logFiles[1]
+
+exampleLog <- as_tibble(read.table(paste(logDir, logFile, sep='/'), h=T)) %>% filter(sim_id!='sim_id')
+exampleLog <- exampleLog %>% mutate(sim_id = as.factor(sim_id), outcome = as.factor(outcome), NeA = as.integer(NeA), NeB = as.integer(NeB), s = as.double(s),
+                         r = as.double(r), mu = as.double(mu), L = as.integer(L), m = as.double(m), mut_pos = as.integer(mut_pos), rise_gen = as.integer(rise_gen), loss_gen = as.integer(loss_gen),
+                         SLiM_gen = as.integer(SLiM_gen), samp = as.integer(samp), mut_freq = as.double(mut_freq), run_CPU_time.s. = as.double(run_CPU_time.s.),
+                         chg_r = as.double(chg_r), split_gen = as.integer(split_gen), chg_gen = as.integer(chg_gen), mig_gen = as.integer(mig_gen))
+
+exampleLog
+```
+Banana ?
+
+
+
+Here, we are interested in :
+
+- s : selection coefficient of beneficial mutation (fixed at 100/2Ne = 50/Ne = 0.005 for testing purposes)
+- mut_pos : genomic position of beneficial mutation
+- loss_gen : generation of loss of beneficial mutation ('segregation time before loss of mutation = loss_gen - rise_gen')
+- run_CPU_time.s. : CPU time of this specific SLiMulation
+  
+The other main informations are the total number of loss registered, as it's the number of times the SLiMulation had to run before validation (mutation fixed or end_freq > 0.1).
+
+Let's process our tibble to sum it up to the usefull information :
+```{r}
+exampleLog <- exampleLog %>% filter(sim_id!='sim_id') %>% mutate(seg_time = loss_gen - rise_gen) %>% select(c(sim_id, outcome, s, mut_pos, rise_gen, loss_gen, seg_time, run_CPU_time.s.))
+exampleLog
+```
+
+Now, we can count the number of failed simulation for this specific sim_id :
+
+```{r}
+exampleLog %>% count(seg_time)
+exampleLog %>% count(sim_id)
+```
+**Run for all logFiles**
+**Create resultsLog tibble containing data from all log files**
+```{r}
+# Set path to log folders
+logPath = "../../logs/TESTING_FIX_PROBA/"
+
+# Initialize an empty resultsLog tibble
+resultsLog <- tibble()
+
+# Loop on all directories
+
+for (logDir in list.dirs(logPath)[-1])
+  {
+    print(logDir) # print current folder processed
+    # Get list of all log files inside this specific folder
+    logFiles = list.files(logDir)
+    #logFiles = head(logFiles, 2) # testing : work only on first 2 files of each directory
+    
+    # Loop on all files in all directories
+    for (logFile in logFiles)
+    {
+      # print(paste(logDir, logFile, sep='/')) # print current file processed
+      
+      # Load file as tibble and convert columns
+      currentLogFile <- as_tibble(read.table(paste(logDir, logFile, sep='/'), h=T)) %>% filter(sim_id!='sim_id')
+      currentLogFile <- currentLogFile %>% mutate(sim_id = as.factor(sim_id), outcome = as.factor(outcome), NeA = as.integer(NeA), NeB = as.integer(NeB), s = as.double(s),
+                               r = as.double(r), mu = as.double(mu), L = as.integer(L), m = as.double(m), mut_pos = as.integer(mut_pos), rise_gen = as.integer(rise_gen), loss_gen = as.integer(loss_gen),
+                               SLiM_gen = as.integer(SLiM_gen), samp = as.integer(samp), mut_freq = as.double(mut_freq), run_CPU_time.s. = as.double(run_CPU_time.s.),
+                               chg_r = as.double(chg_r), split_gen = as.integer(split_gen), chg_gen = as.integer(chg_gen), mig_gen = as.integer(mig_gen))
+      
+      # extract only interresting columns
+      currentLogFile <- currentLogFile %>% filter(sim_id!='sim_id') %>% mutate(seg_time = loss_gen - rise_gen) %>% select(c(sim_id, outcome, s, mut_pos, rise_gen, loss_gen, seg_time, run_CPU_time.s.))
+      #print(currentLogFile)
+      
+      
+      # Add the currentLogFile to resultsLog using bind_rows
+      resultsLog <- bind_rows(resultsLog, currentLogFile)
+      
+    }
+}
+
+resultsLog
+```
+**DATA EXPLORATION**
+
+Now, you can work on resultsLog and do a bit of data exploration. 
+
+**MAIN INFORMATION**
+```{r}
+# Number total number of SLiMulation run lost : 
+loss_number <- length(resultsLog$sim_id)
+
+# Number of validated SLiMulation sim_id :
+valid_SLiMulation <- resultsLog %>% group_by(sim_id) %>% count()
+valid_SLiMulation <- length(valid_SLiMulation$sim_id)
+
+# Proportion of validated runs
+probVal <- valid_SLiMulation/(loss_number+valid_SLiMulation)
+
+cat("Total Number of run lost :", loss_number, "\n")
+cat("Number of validated sim_id :", valid_SLiMulation, "\n")
+cat("Proportion of validated sim_id :", probVal, "\n")
+cat("Ne.s =", 10000*0.005, "\n")
+cat("Note that between the formula and SLiM, there's a factor 2 for s, so we need to divide s by 2 in the formula\n")
+cat("2.s (expected fixation proba for beneficial mutation if Ne.s > 1) =", 2*0.005/2)
+```
+
+
+**SOME ADDITIONAL INFORMATION**
+
+For example :
+
+```{r}
+resultsLog %>% count(seg_time)
+resultsLog %>% count(sim_id)
+resultsLog %>% count(outcome)
+
+resultsLog %>% count(sim_id) %>% filter(n > 2000)
+
+
+```
+For "no set_seed" sims :
+
+```{r}
+
+# If I remove the simulations for which nb run > 10 000
+
+# CST-20904-37Nj-0047	70456			
+# CST-20904-825e-0035	29485			
+# CST-20904-gEZf-0087	612286			
+# CST-20904-Ykx8-0025	57285			
+# CST-20904-Ykx8-0088	294509			
+# CST-20904-Ykx8-0097	228891			
+# CST-20904-ytCD-0003	14912			
+# CST-20905-a8d0-0082	20299			
+# CST-20905-Tkzg-0035	32097
+
+above_10000_runs = resultsLog %>% count(sim_id) %>% filter(n > 2000) %>% select(n) %>% sum()
+
+
+probVal_below10000 = valid_SLiMulation / (loss_number - above_10000_runs)
+
+cat("Proportion of validated sim_id (without above 10000 runs) :", probVal_below10000, "\n")
+
+# Just to check, what are the odds of each of the "above 10 000" SLiMulations
+# considering an expected fixation probability of 0.005
+proba_37Nj47 <- 0.005 * ((1-0.005) ** 70456) 
+proba_825e35 <- 0.005 * ((1-0.005) ** 29485)
+proba_gEZf87 <- 0.005 * ((1-0.005) ** 612286)
+proba_Ykx825 <- 0.005 * ((1-0.005) ** 57285)
+proba_Ykx888 <- 0.005 * ((1-0.005) ** 294509)
+proba_Ykx897 <- 0.005 * ((1-0.005) ** 228891)
+proba_ytCD03 <- 0.005 * ((1-0.005) ** 14912)
+proba_a8d082 <- 0.005 * ((1-0.005) ** 20299)
+proba_Tkzg35 <- 0.005 * ((1-0.005) ** 32097)
+
+cat("Proba of z0rm57 occuring :", proba_37Nj47, "\n")
+cat("Proba of J4KM83 occuring :", proba_825e35, "\n")
+cat("Proba of J4KM29 occuring :", proba_gEZf87, "\n")
+cat("Proba of z0rm57 occuring :", proba_Ykx825, "\n")
+cat("Proba of J4KM83 occuring :", proba_Ykx888, "\n")
+cat("Proba of J4KM29 occuring :", proba_Ykx897, "\n")
+cat("Proba of z0rm57 occuring :", proba_ytCD03, "\n")
+cat("Proba of J4KM83 occuring :", proba_a8d082, "\n")
+cat("Proba of 7jid22 occuring :", proba_Tkzg35)
+
+
+```
+
+
+
+
+For "set_seed" sims
+
+```{r}
+
+# If I remove the simulations for which nb run > 10 000
+
+# CST-20907-z0rm-0057 : 567 347
+# CST-20907-J4KM-0083 : 75 616
+# CST-20907-J4KM-0029 : 14 526
+# CST-20907-7jid-0022	: 10 573
+
+
+probVal_below10000 = 495 / (769983 - 567347 - 75616 - 14526 - 10573)
+
+cat("Proportion of validated sim_id :", probVal_below10000, "\n")
+
+# Just to check, what are the odds of each of the "above 10 000" SLiMulations
+# considering an expected fixation probability of 0.005
+proba_z0rm57 <- 0.005 * ((1-0.005) ** 567347) # et il avait pas fini hein...)
+proba_J4KM83 <- 0.005 * ((1-0.005) ** 75616)
+proba_J4KM29 <- 0.005 * ((1-0.005) ** 14526)
+proba_7jid22 <- 0.005 * ((1-0.005) ** 10573)
+
+cat("Proba of z0rm57 occuring :", proba_z0rm57, "\n")
+cat("Proba of J4KM83 occuring :", proba_J4KM83, "\n")
+cat("Proba of J4KM29 occuring :", proba_J4KM29, "\n")
+cat("Proba of 7jid22 occuring :", proba_7jid22)
+
+
+```
+
+We can get some counts :
+
+```{r}
+sim_id_counts <- resultsLog %>% group_by(sim_id) %>% tally()
+outcome_counts <- resultsLog %>% group_by(sim_id, outcome) %>% tally()
+```
+
+**Distribution of number of resets of SLiMulations**
+
+A log10 scale is used on this figure to better represent the distribution.
+
+```{r}
+# Calculate sim_id counts
+sim_id_counts <- resultsLog %>% group_by(sim_id) %>% tally()
+
+# Calculate the minimum, maximum, mean and median values
+min_value <- min(sim_id_counts$n)
+max_value <- max(sim_id_counts$n)
+mean_value <- mean(sim_id_counts$n)
+median_value <- median(sim_id_counts$n)
+
+# Calculate percentiles
+percentiles <- quantile(sim_id_counts$n, c(0.05, 0.95))
+
+# Create a density plot with log scale
+p <- ggplot(sim_id_counts, aes(x = n)) +
+  geom_density(fill = "skyblue", color = "darkblue", alpha = 0.7) +
+  scale_x_log10() +  # Apply log scale to x-axis
+  labs(x = "log10(sim_id count)", y = "Density") +
+  theme_minimal() +
+  theme(legend.position = "top")  + # Remove legend for this plot
+  scale_fill_manual(values = c("Density" = "skyblue")) # Define legend label and color
+
+# Add vertical lines for 5th and 95th percentiles
+p <- p +
+  geom_vline(xintercept = percentiles[1], linetype = "dashed", color = "red", size = 0.8) +
+  geom_vline(xintercept = percentiles[2], linetype = "dashed", color = "blue", size = 0.8) +
+  geom_vline(xintercept = mean_value, linetype = "dashed", color = "darkgreen", size = 0.5) +
+  geom_vline(xintercept = median_value, linetype = "dashed", color = "darkgreen", size = 0.5)
+
+# Calculate sim_id counts for each section
+below_5_percent <- sum(sim_id_counts$n < percentiles[1])
+between_5_and_95_percent <- sum(sim_id_counts$n >= percentiles[1] & sim_id_counts$n <= percentiles[2])
+above_95_percent <- sum(sim_id_counts$n > percentiles[2])
+
+# Calculate SLiMulation counts for each section
+SLiM_below_5_percent <- sum(sim_id_counts$n[sim_id_counts$n < percentiles[1]])
+SLiM_between_5_and_95_percent <- sum(sim_id_counts$n[sim_id_counts$n > percentiles[1] & sim_id_counts$n <= percentiles[2]])
+SLiM_above_95_percent <- sum(sim_id_counts$n[sim_id_counts$n > percentiles[2]])
+
+# Annotate counts for each section
+p <- p +
+  annotate("text", x = percentiles[1] - 9, y = 0.6, label = paste("Below 5%:\n", below_5_percent, " sim_id"), color = "red", size = 4) +
+  annotate("text", x = mean(percentiles) - 250, y = 0.3, label = paste("Between 5% and 95%:\n", between_5_and_95_percent, " sim_id"), color = "black", size = 4) +
+  annotate("text", x = percentiles[2] + 10000, y = 0.6, label = paste("Above 95%:\n", above_95_percent, " sim_id"), color = "blue", size = 4) +
+  
+  annotate("text", x = percentiles[1] - 9, y = 0.5, label = paste("# :", SLiM_below_5_percent), color = "red", size = 4) +
+  annotate("text", x = mean(percentiles) - 250, y = 0.2, label = paste("# :", SLiM_between_5_and_95_percent), color = "black", size = 4) +
+  annotate("text", x = percentiles[2] + 10000, y = 0.5, label = paste("# :", SLiM_above_95_percent), color = "blue", size = 4) +  
+  
+  annotate("text", x = percentiles[1], y = 0, label = as.integer(percentiles[1]), color = "red", size = 4) +
+  annotate("text", x = percentiles[2], y = 0, label = as.integer(percentiles[2]), color = "blue", size = 4) +  
+  
+  annotate("text", x = mean_value, y = 0.8, label = "mean", color = "darkgreen", size = 4) +
+  annotate("text", x = median_value, y = 0.8, label = "median", color = "darkgreen", size = 4) +  
+  
+  ggtitle(paste("Distribution of number of resets of SLiMulations - log10 scale\n# sim_id : ", length(sim_id_counts$sim_id), "\n# SLiMulation : ", sum(sim_id_counts$n),sep=""))
+
+# Show the plot
+print(p)
+```
+Here's the corresponding values :
+
+```{r}
+# Calculate the minimum, maximum and mean values
+min_value <- min(sim_id_counts$n)
+max_value <- max(sim_id_counts$n)
+mean_value <- mean(sim_id_counts$n)
+median_value <- median(sim_id_counts$n)
+
+# Calculate the specific percentiles
+percentiles <- quantile(sim_id_counts$n, probs = c(0.05, 0.1, 0.25, 0.5, 0.75, 0.90, 0.95))
+
+# Print the results
+cat("Summary of number of SLiMulation per validated sim_id\n\n")
+cat("Minimum:", min_value, "\n")
+cat("Maximum:", max_value, "\n")
+cat("Mean:", mean_value, "\n")
+cat("5th Percentile:", percentiles[1], "\n")
+cat("10th Percentile:", percentiles[2], "\n")
+cat("25th Percentile:", percentiles[3], "\n")
+cat("50th Percentile (Median):", percentiles[4], "\n")
+cat("75th Percentile:", percentiles[5], "\n")
+cat("90th Percentile:", percentiles[6], "\n")
+cat("95th Percentile:", percentiles[7], "\n")
+
+```
+
+It seems that a small number of very long simulations cause the mean to be vastly different from the median.
+To investigate further, let's check the percentage of run needed for each of the three category (below 5%, between 5 and 95% and above 95%) :
+
+```{r}
+# Calculate sim_id counts
+sim_id_counts <- resultsLog %>% group_by(sim_id) %>% tally()
+
+# Calculate percentiles
+percentiles <- quantile(sim_id_counts$n, c(0.05, 0.95))
+
+# Calculate counts for each section
+below_5_percent <- sum(sim_id_counts$n < percentiles[1])
+between_5_and_95_percent <- sum(sim_id_counts$n >= percentiles[1] & sim_id_counts$n <= percentiles[2])
+above_95_percent <- sum(sim_id_counts$n > percentiles[2])
+Category_sim_id <- c(below_5_percent, between_5_and_95_percent, above_95_percent)
+
+# Create a data frame for the bar chart
+bar_data <- data.frame(
+  Category = c("Below 5%", "Between 5% and 95%", "Above 95%"),
+  Count = c(
+    sum(sim_id_counts$n[sim_id_counts$n < percentiles[1]]),
+    sum(sim_id_counts$n[sim_id_counts$n >= percentiles[1] & sim_id_counts$n <= percentiles[2]]),
+    sum(sim_id_counts$n[sim_id_counts$n > percentiles[2]])
+  )
+)
+
+# Calculate the total number of simulations
+total_simulations <- sum(bar_data$Count)
+
+# Calculate the proportions
+bar_data$Proportion <- bar_data$Count / total_simulations
+
+# Create a bar chart
+p <- ggplot(bar_data, aes(x = Category, y = Proportion, fill = Category)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Category", y = "Proportion", fill = NULL) +
+  scale_fill_manual(values = c("Below 5%" = "red", "Between 5% and 95%" = "green", "Above 95%" = "blue")) +
+  theme_minimal() +
+  geom_text(aes(label = paste0(round(Proportion * 100, 2), "%")), vjust = -0.5) +
+  geom_text(aes(label = Count), vjust = 1.5, color = "black", size = 3) +
+  geom_text(aes(label = Category_sim_id), vjust = 3, color = "black", size = 3) +
+  ggtitle(paste("Percentage of total run needed for simulations of each 'category'\n# run: ", total_simulations, sep = ""))
+
+# Show the plot
+print(p)
+```
+As a reminder (the plot can sometimes get weird), here's the number of validated SLiMulation for each category :
+```{r}
+cat("Below 5% (", percentiles[1], ") :", Category_sim_id[1], "\n")
+cat("Between 5 and 95% :", Category_sim_id[2], "\n")
+cat("Above 95% (", percentiles[2], ") :", Category_sim_id[3], "\n")
+```
+
+More than 85% of the runs are needed to validate a measly 5% of the SLiMulations. Let's investigate those specific cases further.
+
+```{r}
+# Get a list of the sim_id that requiered a number of runs above the 95% threshold :
+list95 <- sim_id_counts$sim_id[sim_id_counts$n > percentiles[2]]
+results95 <- resultsLog %>% filter(sim_id %in% list95)
+results95
+```
+
+```{r}
+# Compute a few values :
+
+summary(results95)
+
+
+```
+```{r}
+# Plot a few things :
+plot(density(results95$mut_pos))
+plot(density(log10(results95$seg_time)))
+plot(density(log10(results95$run_CPU_time.s.)))
+
+boxplot(results95$loss_gen)
+boxplot(results95$run_CPU_time.s.)
+
+```
+```{r}
+# Get a list of the sim_id that requiered a number of runs below the 95% threshold :
+list95 <- sim_id_counts$sim_id[sim_id_counts$n > percentiles[2]]
+resultsBelow95 <- resultsLog %>% filter(!(sim_id %in% list95))
+resultsBelow95
+```
+
+
+**MAIN INFORMATION**
+```{r}
+# Number total number of SLiMulation run lost : 
+loss_number <- length(resultsBelow95$sim_id)
+
+# Number of validated SLiMulation sim_id :
+valid_SLiMulation <- resultsBelow95 %>% group_by(sim_id) %>% count()
+valid_SLiMulation <- length(valid_SLiMulation$sim_id)
+
+# Proportion of validated runs
+probVal <- valid_SLiMulation/(loss_number+valid_SLiMulation)
+
+cat("Total Number of run lost :", loss_number, "\n")
+cat("Number of validated sim_id :", valid_SLiMulation, "\n")
+cat("Proportion of validated sim_id :", probVal, "\n")
+cat("Ne.s =", 10000*0.005, "\n")
+cat("2.s (expected fixation proba for beneficial mutation if Ne.s > 1) =", 2*0.005, "\n")
+
+cat("ATTENTION ! - Dans SLiM : aa - 1 / Aa - 1 + h.s / AA - 1 + s - Et on a h = 0.5", "\n")
+cat("Or, expected fixation proba works with aa - 1 / Aa - 1 + s / AA - 1 + 2.s", "\n")
+cat("DONC ! C'est comme si notre s était virtuellement deux fois plus petit.\nEt donc !", "\n")
+cat("2.s (expected fixation proba for beneficial mutation if Ne.s > 1) =", 2*0.005/2)
+```
+
+
+```{r}
+resultsBelow95 %>% group_by(sim_id) %>% count()
+```
+
+*EXPLORATION OF PARAMETERS*
+
+```{r}
+# Set path to log folders
+paramPath = "../../parameters/TESTING_FIX_PROBA/"
+
+# Initialize an empty resultsParam tibble
+resultsParam <- tibble()
+
+# Loop on all directories
+
+for (paramDir in list.dirs(logPath)[-1])
+  {
+    print(paramDir) # print current folder processed
+    # Get list of all log files inside this specific folder
+    paramFiles = list.files(paramDir)
+    #paramFiles = head(paramFiles, 2) # testing : work only on first 2 files of each directory
+    
+    # Loop on all files in all directories
+    for (paramFile in paramFiles)
+    {
+      # print(paste(paramDir, paramFile, sep='/')) # print current file processed
+      
+      # Load file as tibble and convert columns
+      currentParamFile <- as_tibble(read.table(paste(paramDir, paramFile, sep='/'), h=T)) %>% filter(outcome!='outcome')
+      currentParamFile <- currentParamFile %>% mutate(sim_id = as.factor(sim_id), outcome = as.factor(outcome), NeA = as.integer(NeA), NeB = as.integer(NeB), s = as.double(s),
+                               r = as.double(r), mu = as.double(mu), L = as.integer(L), m = as.double(m), mut_pos = as.integer(mut_pos), rise_gen = as.integer(rise_gen), loss_gen = as.integer(loss_gen),
+                               SLiM_gen = as.integer(SLiM_gen), samp = as.integer(samp), mut_freq = as.double(mut_freq), run_CPU_time.s. = as.double(run_CPU_time.s.),
+                               chg_r = as.double(chg_r), split_gen = as.integer(split_gen), chg_gen = as.integer(chg_gen), mig_gen = as.integer(mig_gen))
+      
+      # extract only interresting columns
+      currentParamFile <- currentParamFile %>% filter(outcome!='outcome') %>% select(c(sim_id, outcome, s, mut_pos, loss_gen, SLiM_gen, mut_freq, split_gen, chg_gen, mig_gen ))
+      #print(currentParamFile)
+      
+      
+      # Add the currentParamFile to resultsParam using bind_rows
+      resultsParam <- bind_rows(resultsParam, currentParamFile)
+      
+    }
+}
+
+resultsParam
+```
+
+Now, let's explore the parameters
+
+```{r}
+
+resultsParam %>% count(mut_freq)
+resultsParam %>% count(sim_id)
+resultsParam %>% count(outcome)
+
+runLimit = 2000
+runLimitParam <- resultsParam %>% count(sim_id) %>% filter(n > runLimit)
+
+
+
+runLimitParam <- resultsParam %>% filter(sim_id %in% runLimitParam$sim_id)
+restParam <- resultsParam %>% filter((!sim_id %in% runLimitParam$sim_id))
+
+boxplot(log10(runLimitParam$SLiM_gen), log10(restParam$SLiM_gen), main = paste("SLiM_gen comparison between SLiMulations\ntaking less or more than", runLimit, "tries to get validated\n(log10 scale)", sep=" "),
+        names = c(paste("Above", runLimit, sep=" "), paste("Below", runLimit, sep=" ")),
+        ylab = "SLiM_gen")
+boxplot(runLimitParam$SLiM_gen, restParam$SLiM_gen, main = paste("SLiM_gen comparison between SLiMulations\ntaking less or more than", runLimit, "tries to get validated", sep=" "),
+        names = c(paste("Above", runLimit, sep=" "), paste("Below", runLimit, sep=" ")),
+        ylab = "SLiM_gen")
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+# Create a sequence of 100 thresholds
+min_threshold <- min(x_proba$SLiM_gen)
+max_threshold <- max(x_proba$SLiM_gen)
+thresholds <- seq(min_threshold, max_threshold, length.out = 100)
+
+# Initialize an empty vector to store the proportions
+proportions <- numeric(length(thresholds))
+
+# Calculate the proportions
+for (i in 1:length(thresholds)) {
+  threshold <- thresholds[i]
+  proportions[i] <- sum(x_proba$SLiM_gen < threshold) / nrow(x_proba)
+}
+
+# Create a data frame with the thresholds and proportions
+result_df <- data.frame(threshold = thresholds, proportion = proportions)
+
+# Print the result
+print(result_df)
+
+# Plot basic cumulative proportion
+
+plot(x=result_df$threshold, y=result_df$proportion)
+
+```
+
+
+```{r}
+Pi = function(Ti){return(sum(x$T<=Ti)/length(x$T))}
+
+res = sapply(200:250, Pi)
+
+#plot(200:2000, res, type='l')
+
+```
+
+
+
+**CHECK INFORMATIONS ABOUT restParam**
+
+```{r}
+min(restParam$SLiM_gen)
+max(runLimitParam$SLiM_gen)
+```
+
+
+
+**On the fixation process of a beneficial mutation on a variable environnement**
+
+```{r}
+# xc : target mutation frequency
+# threshold : cumulative probability threshold
+xc = 0.1
+threshold = 0.95
+
+# Simulation parameters
+N = 10000
+s = 10/(2*N)
+
+# epsilon ?
+epsilon = 1e-5
+
+# SLiM_gen values to test
+max_bigT = 2*N
+bigT = 0:max_bigT
+
+firstTerm = (s / (epsilon + s))
+secondTermNumerator = N
+secondTermDenominator = ((1-xc)/xc) * exp(s*bigT)+1
+
+#numerator
+#denominator1
+#denominator2
+
+probaBigTxcBelowBigT = exp(- firstTerm * (secondTermNumerator/secondTermDenominator))
+
+# Find index of thirst element greater than the threshold
+
+first_above_threshold <- which(probaBigTxcBelowBigT > threshold)[1]
+
+# Plot Cumulative Proba by SLiM_gen
+plot(probaBigTxcBelowBigT, type="l", ylab="Cumulative time to get to 0.1 frequency", xlab="SLiM_gen", main=paste("Ne = ", N, " - s = ", s, " - xc = ", xc, sep=""))
+abline(v=first_above_threshold, col="red", lty="dashed")
+abline(h=threshold, col="blue", lty="dashed")
+legend("bottomright", legend=c(paste("Frequency threshold :", threshold, sep=" "), paste("SLiM_gen threshold :", first_above_threshold, sep=" ")),
+       col=c("blue", "red"), lty=2, cex=0.8)
+#points(x=result_df$threshold, y=result_df$proportion)
+
+#diff_list <- c(0, diff(probaBigTxcBelowBigT))
+#plot(diff_list, type="l")
+
+#(1-xc)/xc*s*bigT+1
+
+```
+
+**Run for all ResultsParam Files**
+**Create resultsParam tibble containing data from all log files**
+
+```{r}
+# Set path to log folders
+resultsPath = "../../simulations/TESTING_FIX_PROBA/"
+
+# Initialize an empty resultsLog tibble
+resultsParam <- tibble()
+
+# Loop on all directories
+
+for (resDir in list.dirs(resultsPath)[-1])
+  {
+    print(resDir) # print current folder processed
+    # Get list of all log files inside this specific folder
+    resFiles = list.files(resDir)
+    #logFiles = head(logFiles, 2) # testing : work only on first 2 files of each directory
+    
+    # Loop on all files in all directories
+    for (resFile in resFiles)
+    {
+      
+            if (grepl("parameters", as.character(resFile), fixed=TRUE) )
+            {
+              
+      # print(paste(resDir, logFile, sep='/')) # print current file processed
+      
+      # Load file as tibble and convert columns
+      # print(resFile)
+      currentResFile <- as_tibble(read.table(paste(resDir, resFile, sep='/'), h=T)) %>% filter(sim_id!='sim_id')
+      currentResFile <- currentResFile %>% mutate(sim_id = as.factor(sim_id), outcome = as.factor(outcome), NeA = as.integer(NeA), NeB = as.integer(NeB), s = as.double(s),
+                               r = as.double(r), mu = as.double(mu), L = as.integer(L), m = as.double(m), mut_pos = as.integer(mut_pos), rise_gen = as.integer(rise_gen), fix_gen = as.integer(fix_gen),
+                               SLiM_gen = as.integer(SLiM_gen), samp = as.integer(samp), mut_freq = as.double(mut_freq), run_CPU_time.s. = as.double(run_CPU_time.s.),
+                               chg_r = as.double(chg_r), split_gen = as.integer(split_gen), chg_gen = as.integer(chg_gen), mig_gen = as.integer(mig_gen))
+      
+      # extract only interresting columns
+      currentResFile <- currentResFile %>% filter(sim_id!='sim_id') %>% mutate(seg_time = fix_gen - rise_gen) %>% select(c(sim_id, outcome, s, mut_pos, rise_gen, fix_gen, seg_time, SLiM_gen, run_CPU_time.s.))
+      #print(currentLogFile)
+      
+      
+      # Add the currentLogFile to resultsLog using bind_rows
+      resultsParam <- bind_rows(resultsParam, currentResFile)
+      
+            }
+    }
+}
+
+resultsParam
+
+
+```
+
+
+```{r}
+
+your_tibble <- resultsParam %>% mutate(FixSeg_gen = case_when(outcome == "FIXED" ~ fix_gen,
+                                            outcome == "SEG" ~ SLiM_gen))
+
+
+# Create a cumulative sum of sim_id for increasing fix_gen
+your_tibble <- your_tibble %>% select(sim_id, FixSeg_gen) %>%
+  arrange(FixSeg_gen) %>%
+  mutate(cumulative_count = cumsum(!is.na(FixSeg_gen)))
+
+# Create the plot
+p <- ggplot(your_tibble, aes(x = FixSeg_gen, y = cumulative_count/max(cumulative_count))) +
+  geom_step() +  # Use a step plot for a cumulative effect
+  labs(x = "FixSeg_gen", y = "Cumulative Count of sim_id") +
+  theme_minimal()
+
+# Add a vertical line at fix_gen = 700
+p + geom_vline(xintercept = 2500, linetype = "dashed", color = "red")
+
+
+```
+
+
+```{r}
+
+
+
+# Create a cumulative sum of sim_id for increasing fix_gen
+your_tibble <- resultsParam %>% select(sim_id, fix_gen) %>%
+  arrange(fix_gen) %>%
+  mutate(cumulative_count = cumsum(!is.na(fix_gen)))
+
+# Create the plot
+p <- ggplot(your_tibble, aes(x = fix_gen, y = cumulative_count)) +
+  geom_step() +  # Use a step plot for a cumulative effect
+  labs(x = "fix_gen", y = "Cumulative Count of sim_id") +
+  theme_minimal()
+
+# Add a vertical line at fix_gen = 700
+p + geom_vline(xintercept = 700, linetype = "dashed", color = "red")
+
+```
+
+
+```{r}
+
+as_tibble(read.table("../../simulations/TESTING_FIX_PROBA//CST-20905-Xis9/CST-20905-Xis9-0100_sweep.trees")) %>% filter(sim_id!='sim_id')
+```
+
+
+```{r}
+```
+
+
+
+
+
+
+
+**TUTORIAL**
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+```{r}
+
+```
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

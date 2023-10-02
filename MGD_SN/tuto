@@ -1,4 +1,0 @@
-1) Specify parameters in bin/parameters/parametersx.txt files
-2) Specify windows and step in run_MGD.bash script
-3) Make sure that jobs_MGD.bash script is commented/uncommented for local (or ifb) run
-4) Run "bash jobs_MGD.bash" from within bin/ folder

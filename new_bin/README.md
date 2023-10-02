@@ -40,7 +40,7 @@ If you're **working on a cluster**, you can **launch SLiM simulations using job 
 
 ```
 # Launch SLiM simulations up to 10 simultaneous simulations per parameters subdirectory
-bash launch_SLIM_array.bash 10
+bash launch_SLiM_array.bash 10
 ```
 
 Else, you can **launch the SLiM simulations sequentially** using :
@@ -57,7 +57,7 @@ SLiM simulations' **output files are stored in ./simulations**, in a folder name
 - <b>*_neutral_parameters.txt</b> : containing simulation paramters (sim_id, outcome, NeA, NeB, s, r, mu, L, m, mut_pos, rise_gen, fix_gen, SLiM_gen, samp, mut_freq, chg_r, split_gen, chg_gen, mig_gen, ... see Part X for more details on each parameter.)
 - <b>*_neutral.trees</b> : record of true local ancestry of every chromosome position in every individual of the SLiM model.
 - <b>*_sweep_parameters.txt</b> : containing simulation paramters (sim_id, outcome, NeA, NeB, s, r, mu, L, m, mut_pos, rise_gen, fix_gen, SLiM_gen, samp, mut_freq, chg_r, split_gen, chg_gen, mig_gen, ... see Part X for more details on each parameter.)
-- <b>*_sweep.trees</b> : record of true local ancestry of every chromosome position in every individual of the SLiM model. 
+- <b>*_sweep.trees</b> : record of true local ancestry of every chromosome position in every individual of the SLiM model. lau
 
 #### STEP 1.2 - Recapitation and .ms output
 
@@ -82,10 +82,27 @@ To handle this issue in the most flexible way, we simply set aside the files (bo
 ```
 # Create a noCounterpartMS folder inside each simulation subdirectory
 # and set aside the files for which recapitation could not take place :
-bash noCounterpartMS.bash
+bash moveCounterpartMS_run.bash
 ```
 
 ### STEP 2 - Summary statistics
+
+#### STEP 2.1 - Split SLiMulation files
+
+Due to the way the script used to compute the summary statistics works, we can't launch it with all the SLiMulations files stored inside the same directory. In practice, avoiding directories containing more than 200 SLiMulations should be enough to stay clear of any memory issue.
+
+To quickly split your files into new directories, you can use the provided script : 
+
+```
+# Split all SLiMulations files into new directories with 200 SLiMulations per directory
+sbatch --wrap="bash splitSLiMulations4Stats.sh"
+```
+
+You end up with a folder architecture as follow :
+
+# ADD TREE FOLDER EXAMPLE #
+
+#### STEP 2.2 - Compute summary statistics
 
 Now to compute summary statistics from the .ms files, run the following command :
 
@@ -114,7 +131,7 @@ To handle this issue in the most flexible way, we simply set aside the files (bo
 ```
 # Create a noCounterpartStats folder inside each simulation subdirectory
 # and set aside the files for which recapitation could not take place :
-bash noCounterpartSumStats.bash
+bash moveCounterpartStats_run.bash
 ```
 
 ### STEP 3 - Producing .jpg and bounding-boxes
@@ -124,6 +141,7 @@ bash noCounterpartSumStats.bash
 In order to produce corresponding gray-scale pictures (.jpg files) of the sampled genomes (the .ms files), we first need to get a range for the different statistics :
 
 ```
+# Get path to simulations folders
 SIMULATIONS_DIR="../simulations"
 
 # Generate one range_stats.txt file for each simulation subdirectory
@@ -132,6 +150,19 @@ bash generate_range_stats.bash
 # Get a list of all the range_stats.txt files
 find $SIMULATIONS_DIR -name "range_stats.txt" > list_ranges.txt
 
+```
+You can check the contents of the *list_ranges.txt* file. It should looks something like this : 
+```
+../simulations/EXP-20926-yzSU/range_stats.txt
+../simulations/BTL-20926-qquO/range_stats.txt
+../simulations/MIG-20926-f7M5/range_stats.txt
+../simulations/MGX-20926-bzEu/range_stats.txt
+../simulations/MGB-20926-9cQn/range_stats.txt
+../simulations/CST-20926-Q4te/range_stats.txt
+```
+
+Now to create a consensus range_stats.txt file :
+```
 # Create a 'consensus' range_stats.txt file
 # (do not that this file will be created inside the current ./new_bin/ folder)
 python global_ranges.py list_ranges.txt > range_stats.txt
@@ -144,11 +175,9 @@ Once the consensus range_stats.txt file is created, you can replace the existing
 # and replace the existing range_stats.txt file by the  consensus range_stats.txt file 
 
 for subfolder in $(ls $SIMULATIONS_DIR | grep -E 'BTL|CST|EXP|MGB|MGX|MIG'); do
-    if [ -d "$subfolder" ]; then
-        echo "SIMULATION FOLDER: $(basename "$subfolder")"
-        cp range_stats.txt $SIMULATIONS_DIR/$subfolder/.
-        echo -e "FOLDER - CONSENSUS RANGE_STATS.TXT FILE COPIED"
-    fi
+    echo "SIMULATION FOLDER: $(basename "$subfolder")"
+    cp range_stats.txt $SIMULATIONS_DIR/$subfolder/.
+    echo -e "FOLDER - CONSENSUS RANGE_STATS.TXT FILE COPIED"
 done
 ```
 
@@ -167,3 +196,37 @@ By default, this will generate .jpg files of size 500 x 500 pixels (at 300 dpi) 
 * <b>*_neutral_rawData.txt</b> : YOLOv5 formatted label (position) of the selective sweep (class x_center y_center width height) on the rawData .jpg file.
 * <b>*_neutral_globalPic.jpg</b> : picture of the summary statistics computed on sliding windows along the sampled genomes. The gray scale is based on the range_stats.txt consensus file.
 * <b>*_neutral_globalPic.txt</b> : YOLOv5 formatted label (position) of the selective sweep (class x_center y_center width height) on the globalPic .jpg file.
+
+##### STEP 3.2.1 - Check the number produced files
+
+Just a little extra step to be sure no file is missing :
+```
+# Simple script to count the number of each type of file inside each subdirectory
+bash countFiles.bash
+```
+
+The output file *pipelineFileCount.txt* contains counts for each type of file as below :
+```
+- SIMULATION FOLDER: CST-20926-Q4te -
+    FILE_TYPE           SWEEP   NEUTRAL
+.trees                  40      40
+.ms                     40      40
+param                   40      40
+positions               40      40
+sumStats                40      40
+globalPic.txt           40      40
+globalPicMatrix.txt     40      40
+globalPic.jpg           40      40
+rawData.txt             40      40
+rawData.jpg             40      40
+```
+You should end up with the same number of each file type both for sweep and neutral. It also allows you to have a look at the actual number of usable simulated data (*as, for now, a few loss are bound to happens during the pipeline process*).
+
+#### STEP 3.3 - Regroup SLiMulations files
+
+You can just run regroupSLiMulations.sh to regroup together the SLiMulations sharing the same prefix (CST-20927-eC2d*' for example).
+
+```
+# Simple script to count the number of each type of file inside each subdirectory
+sbatch --wrap="bash regroupSLiMulations.sh"
+```
