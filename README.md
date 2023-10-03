@@ -6,7 +6,7 @@ This repository contains the scripts, files and folders used to run both the CHG
 ## Simple Illustrative Example - 
 ### Step 1 - SLiM Simulations and Recapitation
 #### STEP 1.1 - SLiM Simulations
-For this example, we will **simulate 3 run of each scenario (BTL/CST/EXP and MGB/MIG/MGX)** and go through the **recapitation process** for those simulations.
+For this example, we will **simulate 10 run of each scenario (BTL/CST/EXP and MGB/MIG/MGX)** and go through the **recapitation process** for those simulations.
 
 First, to **generate the parameters** used by the SLiM script, go to the **./bin folder** and run the following python command :
 
@@ -15,14 +15,14 @@ First, to **generate the parameters** used by the SLiM script, go to the **./bin
 # python generate_sim_parameters.py Ne_min Ne_max scenario dip_Nr dip_Nmu L migration samp n_rep
 
 # Simulations without migration
-python generate_sim_parameters.py 100 10000 BTL 0.02 0.02 100000 0 20 3
-python generate_sim_parameters.py 100 10000 CST 0.02 0.02 100000 0 20 3
-python generate_sim_parameters.py 100 10000 EXP 0.02 0.02 100000 0 20 3
+python generate_sim_parameters.py 100 10000 BTL 0.02 0.02 100000 0 20 10
+python generate_sim_parameters.py 100 10000 CST 0.02 0.02 100000 0 20 10
+python generate_sim_parameters.py 100 10000 EXP 0.02 0.02 100000 0 20 10
 
 # Simulation with migration
-python generate_sim_parameters.py 100 10000 BTL 0.02 0.02 100000 1 20 3
-python generate_sim_parameters.py 100 10000 CST 0.02 0.02 100000 1 20 3
-python generate_sim_parameters.py 100 10000 EXP 0.02 0.02 100000 1 20 3
+python generate_sim_parameters.py 100 10000 BTL 0.02 0.02 100000 1 20 10
+python generate_sim_parameters.py 100 10000 CST 0.02 0.02 100000 1 20 10
+python generate_sim_parameters.py 100 10000 EXP 0.02 0.02 100000 1 20 10
 
 ```
 
@@ -40,7 +40,7 @@ If you're **working on a cluster**, you can **launch SLiM simulations using job 
 
 ```
 # Launch SLiM simulations up to 10 simultaneous simulations per parameters subdirectory
-bash launch_SLIM_array.bash 10
+bash launch_SLiM_array.bash 10
 ```
 
 Else, you can **launch the SLiM simulations sequentially** using :
