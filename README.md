@@ -114,7 +114,7 @@ To handle this issue in the most flexible way, we simply set aside the files (bo
 ```
 # Create a noCounterpartStats folder inside each simulation subdirectory
 # and set aside the files for which recapitation could not take place :
-bash noCounterpartSumStats.bash
+bash moveCounterpartSumStats.bash
 ```
 
 ### STEP 3 - Producing .jpg and bounding-boxes
