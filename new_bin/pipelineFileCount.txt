@@ -1,0 +1,78 @@
+
+- SIMULATION FOLDER: BTL-21003-5dqS -
+FILE_TYPE	SWEEP	NEUTRAL
+.trees	23	23
+.ms	23	23
+param	23	23
+positions	23	23
+sumStats	23	23
+globalPic.txt	23	23
+globalPicMatrix.txt	23	23
+globalPic.jpg	23	23
+rawData.txt	23	23
+rawData.jpg	23	23
+
+- SIMULATION FOLDER: CST-21003-bdY1 -
+FILE_TYPE	SWEEP	NEUTRAL
+.trees	21	21
+.ms	21	21
+param	21	21
+positions	21	21
+sumStats	21	21
+globalPic.txt	21	21
+globalPicMatrix.txt	21	21
+globalPic.jpg	21	21
+rawData.txt	21	21
+rawData.jpg	21	21
+
+- SIMULATION FOLDER: EXP-21003-JgeU -
+FILE_TYPE	SWEEP	NEUTRAL
+.trees	16	16
+.ms	16	16
+param	16	16
+positions	16	16
+sumStats	16	16
+globalPic.txt	16	16
+globalPicMatrix.txt	16	16
+globalPic.jpg	16	16
+rawData.txt	16	16
+rawData.jpg	16	16
+
+- SIMULATION FOLDER: MGB-21003-QQI1 -
+FILE_TYPE	SWEEP	NEUTRAL
+.trees	22	22
+.ms	22	22
+param	22	22
+positions	22	22
+sumStats	22	22
+globalPic.txt	22	22
+globalPicMatrix.txt	22	22
+globalPic.jpg	22	22
+rawData.txt	22	22
+rawData.jpg	22	22
+
+- SIMULATION FOLDER: MGX-21003-3P2U -
+FILE_TYPE	SWEEP	NEUTRAL
+.trees	24	24
+.ms	24	24
+param	24	24
+positions	24	24
+sumStats	24	24
+globalPic.txt	24	24
+globalPicMatrix.txt	24	24
+globalPic.jpg	24	24
+rawData.txt	24	24
+rawData.jpg	24	24
+
+- SIMULATION FOLDER: MIG-21003-dWLj -
+FILE_TYPE	SWEEP	NEUTRAL
+.trees	23	23
+.ms	23	23
+param	23	23
+positions	23	23
+sumStats	23	23
+globalPic.txt	23	23
+globalPicMatrix.txt	23	23
+globalPic.jpg	23	23
+rawData.txt	23	23
+rawData.jpg	23	23

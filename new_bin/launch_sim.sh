@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
 module unload python/3.7
-module load msprime/1.1.1
-module load pyslim/0.700
-module load slim/3.7.1
+module load msprime/1.2.0
+module load pyslim/1.0.1
+module load tskit/0.5.3
+module load slim
 
 # Path to the SLiM_run.sh script
 SLIM_RUN_SCRIPT="./SLiM_run.sh"

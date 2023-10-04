@@ -11,7 +11,6 @@ STARTING_PWD=$PWD
 
 # Loop through each subfolder in the parameters directory
 for subfolder in $(ls $SIMULATIONS_DIR | grep -E 'BTL|CST|EXP|MGB|MGX|MIG'); do
-    if [ -d "$subfolder" ]; then
         echo "SIMULATION FOLDER: $(basename "$subfolder")"
 
             cd $SIMULATIONS_DIR/$subfolder
@@ -20,5 +19,4 @@ sbatch --wrap="python ../../new_bin/sim2box_single_YOLOv5.py dpi=300 datapath=$P
 
             cd $STARTING_PWD
         echo -e "FOLDER - DONE: $(basename "$subfolder")\n"
-    fi
 done
